@@ -93,7 +93,7 @@
       box-sizing: border-box;
     }
 
-    /* --- OVERLAY CONTAINER --- */
+    /* --- OVERLAY CANVAS (1920x1080) --- */
     #overlay-container {
       width: 1920px;
       height: 1080px;
@@ -103,12 +103,12 @@
       pointer-events: none;
     }
 
-    /* チーム帯 (青・赤) */
+    /* チーム帯 (青・赤) の精密位置合わせ */
     .team-banner {
       position: absolute;
-      top: 680px;
-      width: 380px;
-      height: 60px;
+      top: 725px;
+      width: 310px;
+      height: 90px;
       display: flex;
       align-items: center;
       padding: 0 15px;
@@ -122,77 +122,91 @@
     }
 
     #team-banner-red {
-      right: 0px;
+      left: 1610px;
       justify-content: flex-end;
       flex-direction: row-reverse;
     }
 
     .team-logo-img {
-      height: 45px;
-      width: 45px;
+      height: 55px;
+      width: 55px;
       object-fit: contain;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     .team-banner-name {
       color: white;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 900;
       letter-spacing: 1px;
       text-transform: uppercase;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 280px;
+      max-width: 220px;
     }
 
-    /* マップ表示（中央黒枠の上） */
+    /* マップ表示（中央の紫グラデーション部分） */
     #map-item {
       position: absolute;
       left: 880px;
-      top: 730px;
+      top: 780px;
       width: 160px;
       height: 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      border-radius: 4px;
     }
 
     .map-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 4px;
+      filter: brightness(0.85);
     }
 
     .map-name {
       position: absolute;
       color: #ffffff;
       font-size: 16px;
-      font-weight: bold;
+      font-weight: 900;
       text-transform: uppercase;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000;
+      text-shadow: 2px 2px 4px rgba(0,0,0,1), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
-    /* 10人のカード（最下部グリッド位置調整） */
+    /* プレイヤー枠（下部格子エリア） */
     .player-item {
       position: absolute;
-      top: 790px;
+      top: 840px;
       width: 160px;
-      height: 200px;
+      height: 240px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
 
+    /* エージェントイラスト（立ち絵） */
     .agent-img {
-      width: 150px;
-      height: 160px;
+      width: 155px;
+      height: 175px;
       object-fit: contain;
-      filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.6));
+      filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.7));
+      margin-top: 0px;
+    }
+
+    /* 選手名（最下部紫帯の中にピッタリ配置） */
+    .player-name-container {
+      width: 100%;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .player-name {
@@ -202,14 +216,13 @@
       text-align: center;
       text-transform: uppercase;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-      margin-bottom: 8px;
-      width: 100%;
+      padding: 0 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* 10名の横並び配置 (中央の黒マス800px-1120pxを空ける) */
+    /* 各枠の横位置（ピクセル精度で完璧に整列） */
     #item-blue-1 { left: 0px; }
     #item-blue-2 { left: 160px; }
     #item-blue-3 { left: 320px; }
@@ -364,7 +377,9 @@
         blueItems.innerHTML += `
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
-            <div id="name-${id}" class="player-name">${defaultName}</div>
+            <div class="player-name-container">
+              <div id="name-${id}" class="player-name">${defaultName}</div>
+            </div>
           </div>`;
       }
 
@@ -384,7 +399,9 @@
         redItems.innerHTML += `
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
-            <div id="name-${id}" class="player-name">${defaultName}</div>
+            <div class="player-name-container">
+              <div id="name-${id}" class="player-name">${defaultName}</div>
+            </div>
           </div>`;
       }
 
@@ -400,7 +417,6 @@
     function renderUI(data) {
       if (!data) return;
 
-      // チーム情報更新
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
@@ -429,14 +445,12 @@
         }
       }
 
-      // マップ更新
       if (data.map) {
         document.getElementById('map-select').value = data.map;
         document.getElementById('map-img-display').src = `images/${data.map}.png`;
         document.getElementById('map-name-display').innerText = data.map.toUpperCase();
       }
 
-      // プレイヤー更新
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
@@ -452,7 +466,6 @@
 
     let sendTimer = null;
     function sendState() {
-      // ローカル即時描画
       const blueName = document.getElementById('team-blue-name-input').value;
       const blueLogo = document.getElementById('team-blue-logo-input').value;
       const redName = document.getElementById('team-red-name-input').value;
@@ -491,7 +504,6 @@
         });
       }
 
-      // 同期データ送信
       clearTimeout(sendTimer);
       sendTimer = setTimeout(() => {
         const data = {
