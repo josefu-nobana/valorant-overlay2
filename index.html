@@ -131,17 +131,18 @@
       gap: 15px;
     }
 
-    /* RED (右チーム Y: 726px 〜 820px / 高さ 94px / X: 1200px〜1920px) */
+    /* RED (右チーム 赤背景帯の上に文字を完璧に合わせる修正) */
     #team-banner-red {
       position: absolute;
       top: 726px;
-      left: 1200px;
-      width: 720px;
-      height: 94px;
+      left: 1350px;
+      width: 550px;
+      height: 112px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      padding-left: 30px;
+      justify-content: flex-end;
+      flex-direction: row-reverse;
+      padding-right: 30px;
       box-sizing: border-box;
       gap: 15px;
     }
@@ -162,7 +163,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 600px;
+      max-width: 480px;
       line-height: 1;
     }
 
