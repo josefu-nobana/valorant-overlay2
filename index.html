@@ -115,36 +115,40 @@
       pointer-events: none;
     }
 
-    /* 1. チームバナー領域 (Y: 726px 〜 838px / 高さ 112px) */
-    .team-banner {
+    /* 1. チームバナー領域 */
+    /* BLUE (左チーム Y: 726px 〜 838px / 高さ 112px) */
+    #team-banner-blue {
       position: absolute;
       top: 726px;
-      width: 780px;
+      left: 0px;
+      width: 800px;
       height: 112px;
       display: flex;
       align-items: center;
+      justify-content: flex-start;
+      padding-left: 25px;
       box-sizing: border-box;
       gap: 15px;
     }
 
-    /* BLUE (左チーム) */
-    #team-banner-blue {
-      left: 0px;
-      justify-content: flex-start;
-      padding-left: 20px;
-    }
-
-    /* RED (右チーム) */
+    /* RED (右チーム Y: 726px 〜 820px / 高さ 94px / X: 1200px〜1920px) */
     #team-banner-red {
-      right: 0px;
-      justify-content: flex-end;
-      flex-direction: row-reverse;
-      padding-right: 20px;
+      position: absolute;
+      top: 726px;
+      left: 1200px;
+      width: 720px;
+      height: 94px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 30px;
+      box-sizing: border-box;
+      gap: 15px;
     }
 
     .team-logo-img {
-      height: 60px;
-      width: 60px;
+      height: 55px;
+      width: 55px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
@@ -158,17 +162,17 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 680px;
+      max-width: 600px;
       line-height: 1;
     }
 
-    /* 2. 中央 Game1 表示 (Y: 792px 〜 838px / 高さ 46px) */
+    /* 2. 中央 Game1 表示 (Y: 778px 〜 838px / 高さ 60px) */
     #game-title-display {
       position: absolute;
       left: 800px;
-      top: 792px;
+      top: 778px;
       width: 320px;
-      height: 46px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -179,12 +183,12 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
     }
 
-    /* 3. エージェント画像＆マップ画像枠 (Y: 838px 〜 1018px / 高さ 180px) */
+    /* 3. エージェント画像＆マップ画像枠 (Y: 856px 〜 1018px / 高さ 162px) */
     .player-item {
       position: absolute;
-      top: 838px;
+      top: 856px;
       width: 160px;
-      height: 180px;
+      height: 162px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -203,9 +207,9 @@
     #map-item {
       position: absolute;
       left: 800px;
-      top: 838px;
+      top: 856px;
       width: 320px;
-      height: 180px;
+      height: 162px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -315,12 +319,12 @@
   </div>
 
   <div id="overlay-container">
-    <div id="team-banner-blue" class="team-banner">
+    <div id="team-banner-blue">
       <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
       <div id="team-blue-name" class="team-banner-name">FANCY Esports</div>
     </div>
 
-    <div id="team-banner-red" class="team-banner">
+    <div id="team-banner-red">
       <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;">
       <div id="team-red-name" class="team-banner-name">AXELIA B</div>
     </div>
