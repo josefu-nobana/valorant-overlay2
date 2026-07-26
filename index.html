@@ -2,9 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>VALORANT Player & Agent & Map Tracker</title>
-  <!-- PeerJSライブラリ（別ブラウザ間リアルタイム通信用） -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <title>VALORANT Overlay</title>
   <style>
     body {
       margin: 0;
@@ -16,7 +14,6 @@
       height: 1080px;
     }
 
-    /* --- 開閉トグルボタン --- */
     #toggle-btn {
       position: fixed;
       top: 10px;
@@ -33,7 +30,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
-    /* --- 管理パネル --- */
     #admin-panel {
       position: fixed;
       top: 45px;
@@ -48,12 +44,9 @@
       overflow-y: auto;
       width: 340px;
       font-family: sans-serif;
-      transition: all 0.3s ease;
     }
 
-    #admin-panel.panel-hidden {
-      display: none;
-    }
+    .panel-hidden { display: none !important; }
 
     .team-title {
       font-size: 13px;
@@ -76,16 +69,8 @@
       border-radius: 4px;
     }
 
-    .player-row-inputs {
-      display: flex;
-      gap: 5px;
-    }
-
-    .player-label {
-      font-size: 11px;
-      font-weight: bold;
-      color: #ff4655;
-    }
+    .player-row-inputs { display: flex; gap: 5px; }
+    .player-label { font-size: 11px; font-weight: bold; color: #ff4655; }
 
     input[type="text"], select {
       padding: 5px 8px;
@@ -99,9 +84,7 @@
     }
 
     input[type="text"] { width: 110px; }
-    select { cursor: pointer; }
 
-    /* --- OBS表示エリア --- */
     #overlay-container {
       width: 1920px;
       height: 1080px;
@@ -111,7 +94,6 @@
       pointer-events: none;
     }
 
-    /* プレイヤーカード */
     .player-item {
       position: absolute;
       display: flex;
@@ -142,7 +124,6 @@
       text-overflow: ellipsis;
     }
 
-    /* --- マップ表示部分 --- */
     #map-item {
       position: absolute;
       left: 850px;
@@ -171,7 +152,6 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
-    /* 10人の個別座標 */
     #item-atk-1 { left: 40px;   top: 830px; }
     #item-atk-2 { left: 190px;  top: 830px; }
     #item-atk-3 { left: 340px;  top: 830px; }
@@ -180,33 +160,30 @@
 
     #item-def-1 { left: 1140px; top: 830px; }
     #item-def-2 { left: 1290px; top: 830px; }
-    #item-def-3 { left: 1440px; top: 830px; }
-    #item-def-4 { left: 1590px; top: 830px; }
+    #item-def-3 { left: 1360px; top: 830px; }
+    #item-def-4 { left: 1520px; top: 830px; }
     #item-def-5 { left: 1740px; top: 830px; }
   </style>
 </head>
 <body>
 
-  <!-- ① 管理パネル開閉ボタン -->
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
-  <!-- ② 管理パネル -->
   <div id="admin-panel">
     <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">プレイヤー & マップ管理</h3>
     
-    <div class="team-title attacker-title">ATTACKERS (アタッカー)</div>
+    <div class="team-title attacker-title">ATTACKERS</div>
     <div id="attacker-controls"></div>
 
-    <div class="team-title map-title">MAP (マップ選択)</div>
+    <div class="team-title map-title">MAP</div>
     <div style="padding: 4px 0;">
-      <select id="map-select" onchange="updateMap()"></select>
+      <select id="map-select" onchange="sendState()"></select>
     </div>
 
-    <div class="team-title defender-title">DEFENDERS (ディフェンダー)</div>
+    <div class="team-title defender-title">DEFENDERS</div>
     <div id="defender-controls"></div>
   </div>
 
-  <!-- ③ OBS表示エリア -->
   <div id="overlay-container">
     <div id="attacker-items"></div>
 
@@ -256,8 +233,11 @@
       ]}
     ];
 
+    // NTFYを使った超高速パブリックリアルタイム通信（設定不要・無料）
+    const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
+
     function createSelectHTML(id) {
-      let html = `<select id="select-${id}" onchange="updatePlayer('${id}')">`;
+      let html = `<select id="select-${id}" onchange="sendState()">`;
       agents.forEach(group => {
         html += `<optgroup label="${group.category}">`;
         group.list.forEach(a => {
@@ -294,7 +274,7 @@
           <div class="player-row">
             <span class="player-label">ATK Player ${i}</span>
             <div class="player-row-inputs">
-              <input type="text" id="input-${id}" value="${defaultName}" oninput="updatePlayer('${id}')" placeholder="選手名">
+              <input type="text" id="input-${id}" value="${defaultName}" oninput="sendState()" placeholder="選手名">
               ${createSelectHTML(id)}
             </div>
           </div>`;
@@ -314,7 +294,7 @@
           <div class="player-row">
             <span class="player-label" style="color:#00adb5;">DEF Player ${i}</span>
             <div class="player-row-inputs">
-              <input type="text" id="input-${id}" value="${defaultName}" oninput="updatePlayer('${id}')" placeholder="選手名">
+              <input type="text" id="input-${id}" value="${defaultName}" oninput="sendState()" placeholder="選手名">
               ${createSelectHTML(id)}
             </div>
           </div>`;
@@ -326,88 +306,24 @@
           </div>`;
       }
 
-      initPeerJS();
-    }
-
-    function updatePlayer(id, isRemote = false) {
-      const inputVal = document.getElementById(`input-${id}`).value;
-      const selectVal = document.getElementById(`select-${id}`).value;
-
-      document.getElementById(`name-${id}`).innerText = inputVal;
-      document.getElementById(`img-${id}`).src = `images/${selectVal}.png`;
-
-      if (!isRemote) broadcastData();
-    }
-
-    function updateMap(isRemote = false) {
-      const mapVal = document.getElementById('map-select').value;
-      document.getElementById('map-img-display').src = `images/${mapVal}.png`;
-      document.getElementById('map-name-display').innerText = mapVal.toUpperCase();
-
-      if (!isRemote) broadcastData();
-    }
-
-    function togglePanel() {
-      const panel = document.getElementById('admin-panel');
-      panel.classList.toggle('panel-hidden');
-    }
-
-    // --- PeerJSを用いた完全リアルタイムWeb同期 ---
-    const ROOM_ID = "josefu-nobana-val-overlay-room-2026"; // 部屋ID
-    let peer = null;
-    let conn = null;
-
-    function initPeerJS() {
-      // サーバーに登録
-      peer = new Peer(ROOM_ID + "-host");
-
-      // すでにホストが存在する場合（自分が操作側ブラウザになる）
-      peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          // ホスト（OBS）がすでにいるので、クライアント（操作側）として接続
-          peer = new Peer();
-          peer.on('open', () => {
-            conn = peer.connect(ROOM_ID + "-host");
-          });
-        }
-      });
-
-      // 自分がホスト（OBS側）の場合にデータを受信
-      peer.on('connection', (c) => {
-        conn = c;
-        conn.on('data', (data) => {
-          applyData(data);
-        });
-      });
-    }
-
-    function broadcastData() {
-      const data = {
-        map: document.getElementById('map-select').value,
-        players: {}
-      };
-
-      for (let i = 1; i <= 5; i++) {
-        ['atk', 'def'].forEach(team => {
-          const id = `${team}-${i}`;
-          data.players[id] = {
-            name: document.getElementById(`input-${id}`).value,
-            agent: document.getElementById(`select-${id}`).value
-          };
-        });
+      // OBSモード（URLに ?obs がある場合）は管理UIを完全非表示にする
+      const isOBS = window.location.search.includes('obs');
+      if (isOBS) {
+        document.getElementById('admin-panel').classList.add('panel-hidden');
+        document.getElementById('toggle-btn').style.display = 'none';
       }
 
-      if (conn && conn.open) {
-        conn.send(data);
-      }
+      // リアルタイム受信の開始
+      listenForUpdates();
     }
 
-    function applyData(data) {
+    function renderUI(data) {
       if (!data) return;
 
       if (data.map) {
         document.getElementById('map-select').value = data.map;
-        updateMap(true);
+        document.getElementById('map-img-display').src = `images/${data.map}.png`;
+        document.getElementById('map-name-display').innerText = data.map.toUpperCase();
       }
 
       if (data.players) {
@@ -416,10 +332,75 @@
           if (document.getElementById(`input-${id}`)) {
             document.getElementById(`input-${id}`).value = p.name;
             document.getElementById(`select-${id}`).value = p.agent;
-            updatePlayer(id, true);
+            document.getElementById(`name-${id}`).innerText = p.name;
+            document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
           }
         });
       }
+    }
+
+    let sendTimer = null;
+    function sendState() {
+      // ローカルのUIを即時更新
+      const mapVal = document.getElementById('map-select').value;
+      document.getElementById('map-img-display').src = `images/${mapVal}.png`;
+      document.getElementById('map-name-display').innerText = mapVal.toUpperCase();
+
+      for (let i = 1; i <= 5; i++) {
+        ['atk', 'def'].forEach(team => {
+          const id = `${team}-${i}`;
+          const inputVal = document.getElementById(`input-${id}`).value;
+          const selectVal = document.getElementById(`select-${id}`).value;
+          document.getElementById(`name-${id}`).innerText = inputVal;
+          document.getElementById(`img-${id}`).src = `images/${selectVal}.png`;
+        });
+      }
+
+      // 連打時の連投防止（デバウンス処理）
+      clearTimeout(sendTimer);
+      sendTimer = setTimeout(() => {
+        const data = {
+          map: mapVal,
+          players: {}
+        };
+
+        for (let i = 1; i <= 5; i++) {
+          ['atk', 'def'].forEach(team => {
+            const id = `${team}-${i}`;
+            data.players[id] = {
+              name: document.getElementById(`input-${id}`).value,
+              agent: document.getElementById(`select-${id}`).value
+            };
+          });
+        }
+
+        // サーバーへ送信（OBSへ届く）
+        fetch(TOPIC_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        }).catch(err => console.error("送信エラー:", err));
+      }, 100);
+    }
+
+    function listenForUpdates() {
+      // SSE (Server-Sent Events) で通信データ待機
+      const eventSource = new EventSource(TOPIC_URL + "/sse");
+      eventSource.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message && message.message) {
+            const data = JSON.parse(message.message);
+            renderUI(data);
+          }
+        } catch (e) {
+          // 無視（フォーマット違いなど）
+        }
+      };
+    }
+
+    function togglePanel() {
+      const panel = document.getElementById('admin-panel');
+      panel.classList.toggle('panel-hidden');
     }
 
     window.onload = init;
