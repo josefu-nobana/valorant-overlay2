@@ -115,11 +115,11 @@
       pointer-events: none;
     }
 
-    /* チームバナー共通設定（プレイヤーカードの真上にぴったり合わせる） */
+    /* チームバナー共通設定（グラデーションバーの中央に合わせた位置） */
     .team-banner {
       position: absolute;
-      top: 792px;  /* プレイヤーカード(top: 852px)のすぐ上 */
-      width: 800px; /* 5人分のカード幅合計 (160px * 5) */
+      top: 708px;  /* グラデーション帯の中にピッタリ収まる位置 */
+      width: 780px;
       height: 60px;
       display: flex;
       align-items: center;
@@ -129,63 +129,61 @@
 
     /* BLUE (左チーム) */
     #team-banner-blue {
-      left: 0px;
+      left: 20px;
       justify-content: flex-start;
-      padding-left: 20px;
     }
 
     /* RED (右チーム) */
     #team-banner-red {
-      right: 0px;
+      right: 20px;
       justify-content: flex-end;
-      flex-direction: row-reverse; /* ロゴを一番右端に配置 */
-      padding-right: 20px;
+      flex-direction: row-reverse;
     }
 
     .team-logo-img {
-      height: 42px;
-      width: 42px;
+      height: 48px;
+      width: 48px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     .team-banner-name {
       color: #ffffff;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 700px;
+      max-width: 680px;
       line-height: 1;
     }
 
-    /* 中央のGame1表示（マップの上、小さな紫帯に配置） */
+    /* 中央のGame1表示（紫の小さな中央帯の上に配置） */
     #game-title-display {
       position: absolute;
       left: 880px;
-      top: 746px;
+      top: 692px; /* 中央紫帯の真上 */
       width: 160px;
-      height: 46px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: 1px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
     }
 
-    /* 中央のマップ画像枠（黒枠部分） */
+    /* 中央のマップ画像枠 */
     #map-item {
       position: absolute;
       left: 800px;
-      top: 852px;
+      top: 792px;
       width: 320px;
-      height: 166px;
+      height: 226px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -216,12 +214,12 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* キャラ表示エリア（白枠部分） */
+    /* キャラ表示エリア（白いカード枠部分） */
     .player-item {
       position: absolute;
-      top: 852px;
+      top: 792px;
       width: 160px;
-      height: 166px;
+      height: 226px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -229,8 +227,8 @@
     }
 
     .agent-img {
-      width: 150px;
-      height: 150px;
+      width: 155px;
+      height: 215px;
       object-fit: contain;
       filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
@@ -246,14 +244,14 @@
       box-sizing: border-box;
     }
 
-    /* BLUE側: 左寄せ＋アイコン枠スペース */
+    /* BLUE側: 左寄せ */
     .player-name-container.blue-align {
       justify-content: flex-start;
       padding-left: 35px;
       padding-right: 5px;
     }
 
-    /* RED側: 右寄せ＋アイコン枠スペース */
+    /* RED側: 右寄せ */
     .player-name-container.red-align {
       justify-content: flex-end;
       padding-right: 35px;
@@ -417,7 +415,7 @@
         html += `<option value="${m.id}">${m.name}</option>`;
       });
       mapSelect.innerHTML = html;
-      mapSelect.value = "sunset"; // 初期マップを画像に合わせてサンセットに設定
+      mapSelect.value = "sunset";
     }
 
     function init() {
