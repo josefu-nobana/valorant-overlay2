@@ -225,7 +225,7 @@
       filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
 
-    /* 最下部の紫枠（各プレイヤー名表示） */
+    /* 最下部の紫枠（各プレイヤー名表示の親コンテナ） */
     .player-name-container {
       position: absolute;
       top: 1018px;
@@ -233,20 +233,42 @@
       height: 62px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    /* BLUE側: 左寄せ＋アイコン枠のスペース(padding-left: 35px) */
+    .player-name-container.blue-align {
+      justify-content: flex-start;
+      padding-left: 35px;
+      padding-right: 5px;
+    }
+
+    /* RED側: 右寄せ＋アイコン枠のスペース(padding-right: 35px) */
+    .player-name-container.red-align {
+      justify-content: flex-end;
+      padding-right: 35px;
+      padding-left: 5px;
     }
 
     .player-name {
       color: #ffffff;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
-      text-align: center;
       text-transform: uppercase;
-      padding: 0 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* BLUE側の文字アライメント */
+    .blue-align .player-name {
+      text-align: left;
+    }
+
+    /* RED側の文字アライメント */
+    .red-align .player-name {
+      text-align: right;
     }
 
     /* 左5枠 (BLUE) */
@@ -421,7 +443,7 @@
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
           </div>
-          <div class="player-name-container" id="name-container-${id}">
+          <div class="player-name-container blue-align" id="name-container-${id}">
             <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
@@ -445,7 +467,7 @@
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
           </div>
-          <div class="player-name-container" id="name-container-${id}">
+          <div class="player-name-container red-align" id="name-container-${id}">
             <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
