@@ -115,23 +115,23 @@
       pointer-events: none;
     }
 
-    /* 1. チームバナー領域 (Y: 746px 〜 838px / 高さ 92px) */
+    /* 1. チームバナー領域 (Y: 726px 〜 838px / 高さ 112px) */
     .team-banner {
       position: absolute;
-      top: 746px;
-      width: 800px;
-      height: 92px;
+      top: 726px;
+      width: 780px;
+      height: 112px;
       display: flex;
       align-items: center;
       box-sizing: border-box;
-      gap: 20px;
+      gap: 15px;
     }
 
     /* BLUE (左チーム) */
     #team-banner-blue {
       left: 0px;
       justify-content: flex-start;
-      padding-left: 25px;
+      padding-left: 20px;
     }
 
     /* RED (右チーム) */
@@ -139,26 +139,26 @@
       right: 0px;
       justify-content: flex-end;
       flex-direction: row-reverse;
-      padding-right: 25px;
+      padding-right: 20px;
     }
 
     .team-logo-img {
-      height: 52px;
-      width: 52px;
+      height: 60px;
+      width: 60px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     .team-banner-name {
       color: #ffffff;
-      font-size: 34px;
+      font-size: 38px;
       font-weight: 800;
       letter-spacing: 0.5px;
       text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 700px;
+      max-width: 680px;
       line-height: 1;
     }
 
@@ -173,7 +173,7 @@
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 19px;
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: 1px;
       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
@@ -186,18 +186,17 @@
       width: 160px;
       height: 180px;
       display: flex;
-      align-items: flex-end; /* 画像の下端を揃える */
+      align-items: center;
       justify-content: center;
       box-sizing: border-box;
       overflow: hidden;
     }
 
     .agent-img {
-      width: 160px;
-      height: 180px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       object-position: top center;
-      filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
 
     /* 中央マップ画像枠 */
@@ -227,30 +226,21 @@
       height: 62px;
       display: flex;
       align-items: center;
+      justify-content: center;
       box-sizing: border-box;
-    }
-
-    .player-name-container.blue-align {
-      justify-content: flex-start;
-      padding-left: 15px;
-      padding-right: 5px;
-    }
-
-    .player-name-container.red-align {
-      justify-content: flex-end;
-      padding-right: 15px;
-      padding-left: 5px;
+      padding: 0 5px;
     }
 
     .player-name {
       color: #ffffff;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
       line-height: 1;
+      text-align: center;
     }
 
     #map-name-display {
@@ -438,7 +428,7 @@
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
           </div>
-          <div class="player-name-container blue-align" id="name-container-${id}">
+          <div class="player-name-container" id="name-container-${id}">
             <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
@@ -462,7 +452,7 @@
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
           </div>
-          <div class="player-name-container red-align" id="name-container-${id}">
+          <div class="player-name-container" id="name-container-${id}">
             <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
