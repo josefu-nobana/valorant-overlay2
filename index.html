@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>VALORANT Player & Agent & Map Tracker</title>
+  <!-- PeerJSライブラリ（別ブラウザ間リアルタイム通信用） -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: 'Arial Black', sans-serif;
+      overflow: hidden;
+      width: 1920px;
+      height: 1080px;
+    }
+
+    /* --- 開閉トグルボタン --- */
+    #toggle-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10000;
+      background: #ff4655;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* --- 管理パネル --- */
+    #admin-panel {
+      position: fixed;
+      top: 45px;
+      left: 10px;
+      z-index: 9999;
+      background: rgba(15, 25, 35, 0.95);
+      border: 2px solid #ff4655;
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      max-height: 80vh;
+      overflow-y: auto;
+      width: 340px;
+      font-family: sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    #admin-panel.panel-hidden {
+      display: none;
+    }
+
+    .team-title {
+      font-size: 13px;
+      font-weight: bold;
+      padding: 4px 8px;
+      margin: 12px 0 6px 0;
+      border-radius: 4px;
+    }
+    .attacker-title { background: #ff4655; color: white; }
+    .map-title { background: #ffb142; color: #111; }
+    .defender-title { background: #00adb5; color: white; }
+
+    .player-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.05);
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .player-row-inputs {
+      display: flex;
+      gap: 5px;
+    }
+
+    .player-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #ff4655;
+    }
+
+    input[type="text"], select {
+      padding: 5px 8px;
+      border-radius: 4px;
+      border: 1px solid #364966;
+      background: #111c24;
+      color: white;
+      font-size: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input[type="text"] { width: 110px; }
+    select { cursor: pointer; }
+
+    /* --- OBS表示エリア --- */
+    #overlay-container {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    /* プレイヤーカード */
+    .player-item {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 130px;
+    }
+
+    .agent-img {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+      filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.7));
+    }
+
+    .player-name {
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      margin-top: 5px;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* --- マップ表示部分 --- */
+    #map-item {
+      position: absolute;
+      left: 850px;
+      top: 830px;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .map-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #ffb142;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    }
+
+    .map-name {
+      color: #ffb142;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 4px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    /* 10人の個別座標 */
+    #item-atk-1 { left: 40px;   top: 830px; }
+    #item-atk-2 { left: 190px;  top: 830px; }
+    #item-atk-3 { left: 340px;  top: 830px; }
+    #item-atk-4 { left: 490px;  top: 830px; }
+    #item-atk-5 { left: 640px;  top: 830px; }
+
+    #item-def-1 { left: 1140px; top: 830px; }
+    #item-def-2 { left: 1290px; top: 830px; }
+    #item-def-3 { left: 1440px; top: 830px; }
+    #item-def-4 { left: 1590px; top: 830px; }
+    #item-def-5 { left: 1740px; top: 830px; }
+  </style>
+</head>
+<body>
+
+  <!-- ① 管理パネル開閉ボタン -->
+  <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
+
+  <!-- ② 管理パネル -->
+  <div id="admin-panel">
+    <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">プレイヤー & マップ管理</h3>
+    
+    <div class="team-title attacker-title">ATTACKERS (アタッカー)</div>
+    <div id="attacker-controls"></div>
+
+    <div class="team-title map-title">MAP (マップ選択)</div>
+    <div style="padding: 4px 0;">
+      <select id="map-select" onchange="updateMap()"></select>
+    </div>
+
+    <div class="team-title defender-title">DEFENDERS (ディフェンダー)</div>
+    <div id="defender-controls"></div>
+  </div>
+
+  <!-- ③ OBS表示エリア -->
+  <div id="overlay-container">
+    <div id="attacker-items"></div>
+
+    <div id="map-item">
+      <img id="map-img-display" class="map-img" src="images/ascent.png" alt="map">
+      <div id="map-name-display" class="map-name">ASCENT</div>
+    </div>
+
+    <div id="defender-items"></div>
+  </div>
+
+  <script>
+    const maps = [
+      { id: "ascent", name: "アセント (Ascent)" },
+      { id: "haven", name: "ヘイブン (Haven)" },
+      { id: "sunset", name: "サンセット (Sunset)" },
+      { id: "breeze", name: "ブリーズ (Breeze)" },
+      { id: "split", name: "スプリット (Split)" },
+      { id: "lotus", name: "ロータス (Lotus)" },
+      { id: "summit", name: "サミット (Summit)" }
+    ];
+
+    const agents = [
+      { category: "デュエリスト", list: [
+        { id: "jett", name: "ジェット" }, { id: "phoenix", name: "フェニックス" },
+        { id: "reyna", name: "レイナ" }, { id: "raze", name: "レイズ" },
+        { id: "yoru", name: "ヨル" }, { id: "neon", name: "ネオン" },
+        { id: "iso", name: "アイソ" }, { id: "waylay", name: "ウェイレイ" }
+      ]},
+      { category: "イニシエーター", list: [
+        { id: "sova", name: "ソーヴァ" }, { id: "breach", name: "ブリーチ" },
+        { id: "skye", name: "スカイ" }, { id: "kayo", name: "KAY/O" },
+        { id: "fade", name: "フェイド" }, { id: "gekko", name: "ゲッコー" },
+        { id: "tejo", name: "テホ" }
+      ]},
+      { category: "コントローラー", list: [
+        { id: "brimstone", name: "ブリムストーン" }, { id: "omen", name: "オーメン" },
+        { id: "viper", name: "ヴァイパー" }, { id: "astra", name: "アストラ" },
+        { id: "harbor", name: "ハーバー" }, { id: "clove", name: "クローヴ" },
+        { id: "mix", name: "ミクス" }
+      ]},
+      { category: "センチネル", list: [
+        { id: "sage", name: "セージ" }, { id: "cypher", name: "サイファー" },
+        { id: "killjoy", name: "キルジョイ" }, { id: "chamber", name: "チェンバー" },
+        { id: "deadlock", name: "デッドロック" }, { id: "vyse", name: "ヴァイス" },
+        { id: "vito", name: "ヴィトー" }
+      ]}
+    ];
+
+    function createSelectHTML(id) {
+      let html = `<select id="select-${id}" onchange="updatePlayer('${id}')">`;
+      agents.forEach(group => {
+        html += `<optgroup label="${group.category}">`;
+        group.list.forEach(a => {
+          html += `<option value="${a.id}">${a.name}</option>`;
+        });
+        html += `</optgroup>`;
+      });
+      html += `</select>`;
+      return html;
+    }
+
+    function initMapSelect() {
+      const mapSelect = document.getElementById('map-select');
+      let html = '';
+      maps.forEach(m => {
+        html += `<option value="${m.id}">${m.name}</option>`;
+      });
+      mapSelect.innerHTML = html;
+    }
+
+    function init() {
+      initMapSelect();
+
+      const atkCtrl = document.getElementById('attacker-controls');
+      const defCtrl = document.getElementById('defender-controls');
+      const atkItems = document.getElementById('attacker-items');
+      const defItems = document.getElementById('defender-items');
+
+      for (let i = 1; i <= 5; i++) {
+        const id = `atk-${i}`;
+        const defaultName = `ATK ${i}`;
+        
+        atkCtrl.innerHTML += `
+          <div class="player-row">
+            <span class="player-label">ATK Player ${i}</span>
+            <div class="player-row-inputs">
+              <input type="text" id="input-${id}" value="${defaultName}" oninput="updatePlayer('${id}')" placeholder="選手名">
+              ${createSelectHTML(id)}
+            </div>
+          </div>`;
+
+        atkItems.innerHTML += `
+          <div class="player-item" id="item-${id}">
+            <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
+            <div id="name-${id}" class="player-name">${defaultName}</div>
+          </div>`;
+      }
+
+      for (let i = 1; i <= 5; i++) {
+        const id = `def-${i}`;
+        const defaultName = `DEF ${i}`;
+
+        defCtrl.innerHTML += `
+          <div class="player-row">
+            <span class="player-label" style="color:#00adb5;">DEF Player ${i}</span>
+            <div class="player-row-inputs">
+              <input type="text" id="input-${id}" value="${defaultName}" oninput="updatePlayer('${id}')" placeholder="選手名">
+              ${createSelectHTML(id)}
+            </div>
+          </div>`;
+
+        defItems.innerHTML += `
+          <div class="player-item" id="item-${id}">
+            <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
+            <div id="name-${id}" class="player-name">${defaultName}</div>
+          </div>`;
+      }
+
+      initPeerJS();
+    }
+
+    function updatePlayer(id, isRemote = false) {
+      const inputVal = document.getElementById(`input-${id}`).value;
+      const selectVal = document.getElementById(`select-${id}`).value;
+
+      document.getElementById(`name-${id}`).innerText = inputVal;
+      document.getElementById(`img-${id}`).src = `images/${selectVal}.png`;
+
+      if (!isRemote) broadcastData();
+    }
+
+    function updateMap(isRemote = false) {
+      const mapVal = document.getElementById('map-select').value;
+      document.getElementById('map-img-display').src = `images/${mapVal}.png`;
+      document.getElementById('map-name-display').innerText = mapVal.toUpperCase();
+
+      if (!isRemote) broadcastData();
+    }
+
+    function togglePanel() {
+      const panel = document.getElementById('admin-panel');
+      panel.classList.toggle('panel-hidden');
+    }
+
+    // --- PeerJSを用いた完全リアルタイムWeb同期 ---
+    const ROOM_ID = "josefu-nobana-val-overlay-room-2026"; // 部屋ID
+    let peer = null;
+    let conn = null;
+
+    function initPeerJS() {
+      // サーバーに登録
+      peer = new Peer(ROOM_ID + "-host");
+
+      // すでにホストが存在する場合（自分が操作側ブラウザになる）
+      peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+          // ホスト（OBS）がすでにいるので、クライアント（操作側）として接続
+          peer = new Peer();
+          peer.on('open', () => {
+            conn = peer.connect(ROOM_ID + "-host");
+          });
+        }
+      });
+
+      // 自分がホスト（OBS側）の場合にデータを受信
+      peer.on('connection', (c) => {
+        conn = c;
+        conn.on('data', (data) => {
+          applyData(data);
+        });
+      });
+    }
+
+    function broadcastData() {
+      const data = {
+        map: document.getElementById('map-select').value,
+        players: {}
+      };
+
+      for (let i = 1; i <= 5; i++) {
+        ['atk', 'def'].forEach(team => {
+          const id = `${team}-${i}`;
+          data.players[id] = {
+            name: document.getElementById(`input-${id}`).value,
+            agent: document.getElementById(`select-${id}`).value
+          };
+        });
+      }
+
+      if (conn && conn.open) {
+        conn.send(data);
+      }
+    }
+
+    function applyData(data) {
+      if (!data) return;
+
+      if (data.map) {
+        document.getElementById('map-select').value = data.map;
+        updateMap(true);
+      }
+
+      if (data.players) {
+        Object.keys(data.players).forEach(id => {
+          const p = data.players[id];
+          if (document.getElementById(`input-${id}`)) {
+            document.getElementById(`input-${id}`).value = p.name;
+            document.getElementById(`select-${id}`).value = p.agent;
+            updatePlayer(id, true);
+          }
+        });
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
