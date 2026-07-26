@@ -58,6 +58,7 @@
     .blue-team-title { background: #00b4d8; color: white; }
     .map-title { background: #ffb142; color: #111; }
     .red-team-title { background: #ff4655; color: white; }
+    .sheet-title { background: #2ecc71; color: #111; }
 
     .team-info-box {
       background: rgba(255,255,255,0.08);
@@ -93,6 +94,17 @@
       box-sizing: border-box;
     }
 
+    .btn-action {
+      background: #2ecc71;
+      color: #111;
+      font-weight: bold;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
     /* --- OVERLAY CANVAS (1920x1080) --- */
     #overlay-container {
       width: 1920px;
@@ -103,12 +115,12 @@
       pointer-events: none;
     }
 
-    /* チーム帯 (青・赤) の精密位置合わせ */
+    /* チームバナー位置（グラデーションバーの上） */
     .team-banner {
       position: absolute;
       top: 725px;
-      width: 310px;
-      height: 90px;
+      width: 320px;
+      height: 55px;
       display: flex;
       align-items: center;
       padding: 0 15px;
@@ -116,27 +128,19 @@
       gap: 12px;
     }
 
-    #team-banner-blue {
-      left: 0px;
-      justify-content: flex-start;
-    }
-
-    #team-banner-red {
-      left: 1610px;
-      justify-content: flex-end;
-      flex-direction: row-reverse;
-    }
+    #team-banner-blue { left: 0px; justify-content: flex-start; }
+    #team-banner-red { left: 1600px; justify-content: flex-end; flex-direction: row-reverse; }
 
     .team-logo-img {
-      height: 55px;
-      width: 55px;
+      height: 45px;
+      width: 45px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     .team-banner-name {
       color: white;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 900;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -144,91 +148,113 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 220px;
+      max-width: 230px;
     }
 
-    /* マップ表示（中央の紫グラデーション部分） */
-    #map-item {
+    /* ① 黒の上の紫色の枠（GAME 1 表示） */
+    #game-title-display {
       position: absolute;
       left: 880px;
       top: 780px;
       width: 160px;
-      height: 60px;
+      height: 72px;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* 真ん中の黒い枠（マップ画像） */
+    #map-item {
+      position: absolute;
+      left: 800px;
+      top: 852px;
+      width: 320px;
+      height: 166px;
+      display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      border-radius: 4px;
     }
 
     .map-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: brightness(0.85);
     }
 
-    .map-name {
+    /* ② 最下部の紫色の枠（マップ名表示） */
+    #map-name-display {
       position: absolute;
+      left: 800px;
+      top: 1018px;
+      width: 320px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #ffffff;
-      font-size: 16px;
+      font-size: 22px;
       font-weight: 900;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      text-shadow: 2px 2px 4px rgba(0,0,0,1), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* プレイヤー枠（下部格子エリア） */
+    /* ③ 白い枠（キャラ・選手1名分の枠） */
     .player-item {
       position: absolute;
-      top: 840px;
+      top: 852px;
       width: 160px;
-      height: 240px;
+      height: 166px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      padding: 6px 2px 8px 2px;
       box-sizing: border-box;
     }
 
-    /* エージェントイラスト（立ち絵） */
     .agent-img {
-      width: 155px;
-      height: 175px;
+      width: 140px;
+      height: 115px;
       object-fit: contain;
-      filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.7));
-      margin-top: 0px;
+      filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
 
-    /* 選手名（最下部紫帯の中にピッタリ配置） */
     .player-name-container {
       width: 100%;
-      height: 60px;
+      height: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .player-name {
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+      color: #111111;
+      font-size: 15px;
+      font-weight: 900;
       text-align: center;
       text-transform: uppercase;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-      padding: 0 4px;
+      padding: 0 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* 各枠の横位置（ピクセル精度で完璧に整列） */
+    /* 左5枠 (BLUE) */
     #item-blue-1 { left: 0px; }
     #item-blue-2 { left: 160px; }
     #item-blue-3 { left: 320px; }
     #item-blue-4 { left: 480px; }
     #item-blue-5 { left: 640px; }
 
+    /* 右5枠 (RED) */
     #item-red-1 { left: 1120px; }
     #item-red-2 { left: 1280px; }
     #item-red-3 { left: 1440px; }
@@ -240,36 +266,47 @@
 
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
-  <!-- 管理パネル -->
   <div id="admin-panel">
     <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">大会オーバーレイ管理</h3>
-    
+
+    <!-- Googleスプレッドシート自動連動 -->
+    <div class="team-title sheet-title">📊 Googleフォーム/シート連携</div>
+    <div class="team-info-box">
+      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
+      <button class="btn-action" onclick="fetchSheetData()">チーム情報を読み込む</button>
+    </div>
+
     <!-- 青チーム -->
     <div class="team-title blue-team-title">BLUE TEAM (左側)</div>
     <div class="team-info-box">
+      <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
       <input type="text" id="team-blue-name-input" value="TEAM BLUE" oninput="sendState()" placeholder="チーム名">
       <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_a.png)">
     </div>
     <div id="blue-controls"></div>
 
-    <!-- マップ -->
-    <div class="team-title map-title">MAP (マップ選択)</div>
-    <div style="padding: 4px 0;">
+    <!-- マップ & Game表示 -->
+    <div class="team-title map-title">MAP & GAME INFO</div>
+    <div class="team-info-box">
+      <input type="text" id="game-title-input" value="GAME 1" oninput="sendState()" placeholder="表記 (例: GAME 1, FINAL)">
       <select id="map-select" onchange="sendState()"></select>
     </div>
 
     <!-- 赤チーム -->
     <div class="team-title red-team-title">RED TEAM (右側)</div>
     <div class="team-info-box">
+      <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
       <input type="text" id="team-red-name-input" value="TEAM RED" oninput="sendState()" placeholder="チーム名">
       <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_b.png)">
     </div>
     <div id="red-controls"></div>
   </div>
 
-  <!-- OBS表示オーバーレイ -->
   <div id="overlay-container">
-    <!-- チーム帯＆ロゴ -->
     <div id="team-banner-blue" class="team-banner">
       <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
       <div id="team-blue-name" class="team-banner-name">TEAM BLUE</div>
@@ -280,13 +317,17 @@
       <div id="team-red-name" class="team-banner-name">TEAM RED</div>
     </div>
 
-    <!-- 中央マップ -->
+    <!-- 真ん中の黒の上の紫（GAME 1） -->
+    <div id="game-title-display">GAME 1</div>
+
+    <!-- 真ん中の黒枠（マップ画像） -->
     <div id="map-item">
       <img id="map-img-display" class="map-img" src="images/ascent.png" alt="map">
-      <div id="map-name-display" class="map-name">ASCENT</div>
     </div>
 
-    <!-- プレイヤー一覧 -->
+    <!-- 下の紫色の枠（マップ名） -->
+    <div id="map-name-display">ASCENT</div>
+
     <div id="blue-items"></div>
     <div id="red-items"></div>
   </div>
@@ -330,6 +371,7 @@
     ];
 
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
+    let loadedTeamsData = [];
 
     function createSelectHTML(id) {
       let html = `<select id="select-${id}" onchange="sendState()">`;
@@ -414,8 +456,83 @@
       listenForUpdates();
     }
 
+    function fetchSheetData() {
+      const sheetId = document.getElementById('sheet-id-input').value.trim();
+      if (!sheetId) {
+        alert("スプレッドシートIDを入力してください");
+        return;
+      }
+
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substr(47).slice(0, -2));
+          const rows = json.table.rows;
+          loadedTeamsData = [];
+
+          rows.forEach(row => {
+            if (!row.c || !row.c[1]) return;
+            const teamName = row.c[1] ? row.c[1].v : "";
+            const p1 = row.c[2] ? row.c[2].v : "";
+            const p2 = row.c[3] ? row.c[3].v : "";
+            const p3 = row.c[4] ? row.c[4].v : "";
+            const p4 = row.c[5] ? row.c[5].v : "";
+            const p5 = row.c[6] ? row.c[6].v : "";
+
+            if (teamName) {
+              loadedTeamsData.push({
+                teamName: teamName,
+                players: [p1, p2, p3, p4, p5]
+              });
+            }
+          });
+
+          updateTeamDropdowns();
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
+        })
+        .catch(err => {
+          console.error(err);
+          alert("データの取得に失敗しました。スプレッドシートの「Webに公開」設定を確認してください。");
+        });
+    }
+
+    function updateTeamDropdowns() {
+      ['blue', 'red'].forEach(side => {
+        const select = document.getElementById(`select-team-${side}-preset`);
+        select.innerHTML = '<option value="">-- シートからチームを選択 --</option>';
+        loadedTeamsData.forEach((t, idx) => {
+          select.innerHTML += `<option value="${idx}">${t.teamName}</option>`;
+        });
+      });
+    }
+
+    function applyTeamPreset(side) {
+      const select = document.getElementById(`select-team-${side}-preset`);
+      const idx = select.value;
+      if (idx === "") return;
+
+      const team = loadedTeamsData[idx];
+      document.getElementById(`team-${side}-name-input`).value = team.teamName;
+
+      for (let i = 1; i <= 5; i++) {
+        const playerInput = document.getElementById(`input-${side}-${i}`);
+        if (playerInput && team.players[i - 1]) {
+          playerInput.value = team.players[i - 1];
+        }
+      }
+
+      sendState();
+    }
+
     function renderUI(data) {
       if (!data) return;
+
+      if (data.gameTitle !== undefined) {
+        document.getElementById('game-title-input').value = data.gameTitle;
+        document.getElementById('game-title-display').innerText = data.gameTitle;
+      }
 
       if (data.teams) {
         if (data.teams.blue) {
@@ -466,6 +583,9 @@
 
     let sendTimer = null;
     function sendState() {
+      const gameTitle = document.getElementById('game-title-input').value;
+      document.getElementById('game-title-display').innerText = gameTitle;
+
       const blueName = document.getElementById('team-blue-name-input').value;
       const blueLogo = document.getElementById('team-blue-logo-input').value;
       const redName = document.getElementById('team-red-name-input').value;
@@ -507,6 +627,7 @@
       clearTimeout(sendTimer);
       sendTimer = setTimeout(() => {
         const data = {
+          gameTitle: gameTitle,
           teams: {
             blue: { name: blueName, logo: blueLogo },
             red: { name: redName, logo: redLogo }
