@@ -115,6 +115,7 @@
       pointer-events: none;
     }
 
+    /* チームバナー位置 */
     .team-banner {
       position: absolute;
       top: 725px;
@@ -150,7 +151,7 @@
       max-width: 230px;
     }
 
-    /* ① 黒の上の紫色の枠（GAME 1 表示） */
+    /* 真ん中の黒の上の紫（GAME 1 表示） */
     #game-title-display {
       position: absolute;
       left: 880px;
@@ -168,7 +169,7 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* 真ん中の黒い枠（マップ画像） */
+    /* 真ん中の黒枠（マップ画像） */
     #map-item {
       position: absolute;
       left: 800px;
@@ -187,7 +188,7 @@
       object-fit: cover;
     }
 
-    /* ② 最下部の紫色の枠（マップ名表示） */
+    /* 最下部の紫枠（マップ名表示） */
     #map-name-display {
       position: absolute;
       left: 800px;
@@ -205,60 +206,62 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* ③ 白い枠（キャラ・選手1名分の枠） */
+    /* 白い枠（キャラ表示エリア） */
     .player-item {
       position: absolute;
       top: 852px;
       width: 160px;
       height: 166px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      padding: 6px 2px 8px 2px;
+      justify-content: center;
       box-sizing: border-box;
     }
 
     .agent-img {
-      width: 140px;
-      height: 115px;
+      width: 150px;
+      height: 150px;
       object-fit: contain;
       filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
 
+    /* 最下部の紫枠（各プレイヤー名表示） */
     .player-name-container {
-      width: 100%;
-      height: 30px;
+      position: absolute;
+      top: 1018px;
+      width: 160px;
+      height: 62px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .player-name {
-      color: #111111;
-      font-size: 15px;
+      color: #ffffff;
+      font-size: 16px;
       font-weight: 900;
       text-align: center;
       text-transform: uppercase;
-      padding: 0 2px;
+      padding: 0 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
     /* 左5枠 (BLUE) */
-    #item-blue-1 { left: 0px; }
-    #item-blue-2 { left: 160px; }
-    #item-blue-3 { left: 320px; }
-    #item-blue-4 { left: 480px; }
-    #item-blue-5 { left: 640px; }
+    #item-blue-1, #name-container-blue-1 { left: 0px; }
+    #item-blue-2, #name-container-blue-2 { left: 160px; }
+    #item-blue-3, #name-container-blue-3 { left: 320px; }
+    #item-blue-4, #name-container-blue-4 { left: 480px; }
+    #item-blue-5, #name-container-blue-5 { left: 640px; }
 
     /* 右5枠 (RED) */
-    #item-red-1 { left: 1120px; }
-    #item-red-2 { left: 1280px; }
-    #item-red-3 { left: 1440px; }
-    #item-red-4 { left: 1600px; }
-    #item-red-5 { left: 1760px; }
+    #item-red-1, #name-container-red-1 { left: 1120px; }
+    #item-red-2, #name-container-red-2 { left: 1280px; }
+    #item-red-3, #name-container-red-3 { left: 1440px; }
+    #item-red-4, #name-container-red-4 { left: 1600px; }
+    #item-red-5, #name-container-red-5 { left: 1760px; }
   </style>
 </head>
 <body>
@@ -417,9 +420,9 @@
         blueItems.innerHTML += `
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
-            <div class="player-name-container">
-              <div id="name-${id}" class="player-name">${defaultName}</div>
-            </div>
+          </div>
+          <div class="player-name-container" id="name-container-${id}">
+            <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
 
@@ -441,9 +444,9 @@
         redItems.innerHTML += `
           <div class="player-item" id="item-${id}">
             <img id="img-${id}" class="agent-img" src="images/jett.png" alt="agent">
-            <div class="player-name-container">
-              <div id="name-${id}" class="player-name">${defaultName}</div>
-            </div>
+          </div>
+          <div class="player-name-container" id="name-container-${id}">
+            <div id="name-${id}" class="player-name">${defaultName}</div>
           </div>`;
       }
 
@@ -476,7 +479,6 @@
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : "";
             
-            // 行にある全選手名を取得
             const players = [];
             for (let col = 1; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
@@ -497,7 +499,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("データの取得に失敗しました。スプレッドシートのアクセス権（共有設定）を確認してください。");
+          alert("データの取得に失敗しました。スプレッドシートのアクセス権を確認してください。");
         });
     }
 
@@ -511,7 +513,6 @@
       });
     }
 
-    /* チームが選ばれたときに、選手名ドロップダウンの選択肢を書き換える */
     function applyTeamPreset(side) {
       const select = document.getElementById(`select-team-${side}-preset`);
       const idx = select.value;
@@ -529,7 +530,6 @@
           });
           playerSelect.innerHTML = optionsHtml;
           
-          // 初期位置としてi番目の選手を選択（足りない場合は最後の選手）
           if (team.players[i - 1]) {
             playerSelect.value = team.players[i - 1];
           }
@@ -586,7 +586,6 @@
           const p = data.players[id];
           const pSelect = document.getElementById(`select-player-${id}`);
           if (pSelect) {
-            // ドロップダウンに値がなければ動的に追加して選択する
             if (!Array.from(pSelect.options).some(opt => opt.value === p.name)) {
               pSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
             }
