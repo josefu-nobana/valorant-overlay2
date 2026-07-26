@@ -8,7 +8,7 @@
       margin: 0;
       padding: 0;
       background: transparent;
-      font-family: 'Arial Black', sans-serif;
+      font-family: 'Arial', sans-serif;
       overflow: hidden;
       width: 1920px;
       height: 1080px;
@@ -115,73 +115,71 @@
       pointer-events: none;
     }
 
-    /* チームバナー共通設定（上下中央・位置固定） */
+    /* チームバナー共通設定（プレイヤーカードの真上にぴったり合わせる） */
     .team-banner {
       position: absolute;
-      top: 673px;
-      width: 320px;
-      height: 107px;
+      top: 792px;  /* プレイヤーカード(top: 852px)のすぐ上 */
+      width: 800px; /* 5人分のカード幅合計 (160px * 5) */
+      height: 60px;
       display: flex;
-      align-items: center; /* 上下中央 */
+      align-items: center;
       box-sizing: border-box;
-      gap: 12px;
+      gap: 15px;
     }
 
-    /* BLUE (左チーム) の左右位置調整 */
+    /* BLUE (左チーム) */
     #team-banner-blue {
       left: 0px;
       justify-content: flex-start;
-      padding-left: 25px;
+      padding-left: 20px;
     }
 
-    /* RED (右チーム) の左右位置調整 */
+    /* RED (右チーム) */
     #team-banner-red {
       right: 0px;
       justify-content: flex-end;
-      flex-direction: row-reverse;
-      padding-right: 25px;
+      flex-direction: row-reverse; /* ロゴを一番右端に配置 */
+      padding-right: 20px;
     }
 
     .team-logo-img {
-      height: 48px;
-      width: 48px;
+      height: 42px;
+      width: 42px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     .team-banner-name {
-      color: white;
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 230px;
+      max-width: 700px;
       line-height: 1;
     }
 
-    /* 真ん中の黒の上の紫（GAME 1 表示） */
+    /* 中央のGame1表示（マップの上、小さな紫帯に配置） */
     #game-title-display {
       position: absolute;
       left: 880px;
-      top: 780px;
+      top: 746px;
       width: 160px;
-      height: 72px;
+      height: 46px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
     }
 
-    /* 真ん中の黒枠（マップ画像） */
+    /* 中央のマップ画像枠（黒枠部分） */
     #map-item {
       position: absolute;
       left: 800px;
@@ -200,7 +198,7 @@
       object-fit: cover;
     }
 
-    /* 最下部の紫枠（マップ名表示） */
+    /* 最下部のマップ名表示（紫枠部分） */
     #map-name-display {
       position: absolute;
       left: 800px;
@@ -211,14 +209,14 @@
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       letter-spacing: 2px;
       text-transform: uppercase;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* 白い枠（キャラ表示エリア） */
+    /* キャラ表示エリア（白枠部分） */
     .player-item {
       position: absolute;
       top: 852px;
@@ -237,7 +235,7 @@
       filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.7));
     }
 
-    /* 最下部の紫枠（各プレイヤー名表示の親コンテナ） */
+    /* プレイヤー名表示枠（最下部紫背景） */
     .player-name-container {
       position: absolute;
       top: 1018px;
@@ -264,9 +262,8 @@
 
     .player-name {
       color: #ffffff;
-      font-size: 15px;
-      font-weight: 900;
-      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -312,7 +309,7 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-blue-name-input" value="TEAM BLUE" oninput="sendState()" placeholder="チーム名 (手入力可)">
+      <input type="text" id="team-blue-name-input" value="FANCY Esports" oninput="sendState()" placeholder="チーム名 (手入力可)">
       <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_a.png)">
     </div>
     <div id="blue-controls"></div>
@@ -320,7 +317,7 @@
     <!-- マップ & Game表示 -->
     <div class="team-title map-title">MAP & GAME INFO</div>
     <div class="team-info-box">
-      <input type="text" id="game-title-input" value="GAME 1" oninput="sendState()" placeholder="表記 (例: GAME 1, FINAL)">
+      <input type="text" id="game-title-input" value="Game1" oninput="sendState()" placeholder="表記 (例: Game1, FINAL)">
       <select id="map-select" onchange="sendState()"></select>
     </div>
 
@@ -330,7 +327,7 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-red-name-input" value="TEAM RED" oninput="sendState()" placeholder="チーム名 (手入力可)">
+      <input type="text" id="team-red-name-input" value="AXELIA B" oninput="sendState()" placeholder="チーム名 (手入力可)">
       <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_b.png)">
     </div>
     <div id="red-controls"></div>
@@ -339,21 +336,21 @@
   <div id="overlay-container">
     <div id="team-banner-blue" class="team-banner">
       <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
-      <div id="team-blue-name" class="team-banner-name">TEAM BLUE</div>
+      <div id="team-blue-name" class="team-banner-name">FANCY Esports</div>
     </div>
 
     <div id="team-banner-red" class="team-banner">
       <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;">
-      <div id="team-red-name" class="team-banner-name">TEAM RED</div>
+      <div id="team-red-name" class="team-banner-name">AXELIA B</div>
     </div>
 
-    <div id="game-title-display">GAME 1</div>
+    <div id="game-title-display">Game1</div>
 
     <div id="map-item">
-      <img id="map-img-display" class="map-img" src="images/ascent.png" alt="map">
+      <img id="map-img-display" class="map-img" src="images/sunset.png" alt="map">
     </div>
 
-    <div id="map-name-display">ASCENT</div>
+    <div id="map-name-display">SUNSET</div>
 
     <div id="blue-items"></div>
     <div id="red-items"></div>
@@ -420,6 +417,7 @@
         html += `<option value="${m.id}">${m.name}</option>`;
       });
       mapSelect.innerHTML = html;
+      mapSelect.value = "sunset"; // 初期マップを画像に合わせてサンセットに設定
     }
 
     function init() {
