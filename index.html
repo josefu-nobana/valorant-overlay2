@@ -115,7 +115,6 @@
       pointer-events: none;
     }
 
-    /* チームバナー位置（グラデーションバーの上） */
     .team-banner {
       position: absolute;
       top: 725px;
@@ -270,10 +269,10 @@
     <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">大会オーバーレイ管理</h3>
 
     <!-- Googleスプレッドシート自動連動 -->
-    <div class="team-title sheet-title">📊 Googleフォーム/シート連携</div>
+    <div class="team-title sheet-title">📊 Googleスプレッドシート連携</div>
     <div class="team-info-box">
       <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
-      <button class="btn-action" onclick="fetchSheetData()">チーム情報を読み込む</button>
+      <button class="btn-action" onclick="fetchSheetData()">データ読み込み</button>
     </div>
 
     <!-- 青チーム -->
@@ -282,7 +281,7 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-blue-name-input" value="TEAM BLUE" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-blue-name-input" value="TEAM BLUE" oninput="sendState()" placeholder="チーム名 (手入力可)">
       <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_a.png)">
     </div>
     <div id="blue-controls"></div>
@@ -300,7 +299,7 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-red-name-input" value="TEAM RED" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-red-name-input" value="TEAM RED" oninput="sendState()" placeholder="チーム名 (手入力可)">
       <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_b.png)">
     </div>
     <div id="red-controls"></div>
@@ -317,15 +316,12 @@
       <div id="team-red-name" class="team-banner-name">TEAM RED</div>
     </div>
 
-    <!-- 真ん中の黒の上の紫（GAME 1） -->
     <div id="game-title-display">GAME 1</div>
 
-    <!-- 真ん中の黒枠（マップ画像） -->
     <div id="map-item">
       <img id="map-img-display" class="map-img" src="images/ascent.png" alt="map">
     </div>
 
-    <!-- 下の紫色の枠（マップ名） -->
     <div id="map-name-display">ASCENT</div>
 
     <div id="blue-items"></div>
@@ -373,8 +369,8 @@
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     let loadedTeamsData = [];
 
-    function createSelectHTML(id) {
-      let html = `<select id="select-${id}" onchange="sendState()">`;
+    function createAgentSelectHTML(id) {
+      let html = `<select id="select-agent-${id}" onchange="sendState()">`;
       agents.forEach(group => {
         html += `<optgroup label="${group.category}">`;
         group.list.forEach(a => {
@@ -411,8 +407,10 @@
           <div class="player-row">
             <span class="player-label" style="color:#00b4d8;">BLUE Player ${i}</span>
             <div class="player-row-inputs">
-              <input type="text" id="input-${id}" value="${defaultName}" oninput="sendState()" placeholder="選手名">
-              ${createSelectHTML(id)}
+              <select id="select-player-${id}" onchange="sendState()">
+                <option value="${defaultName}">${defaultName}</option>
+              </select>
+              ${createAgentSelectHTML(id)}
             </div>
           </div>`;
 
@@ -433,8 +431,10 @@
           <div class="player-row">
             <span class="player-label" style="color:#ff4655;">RED Player ${i}</span>
             <div class="player-row-inputs">
-              <input type="text" id="input-${id}" value="${defaultName}" oninput="sendState()" placeholder="選手名">
-              ${createSelectHTML(id)}
+              <select id="select-player-${id}" onchange="sendState()">
+                <option value="${defaultName}">${defaultName}</option>
+              </select>
+              ${createAgentSelectHTML(id)}
             </div>
           </div>`;
 
@@ -473,18 +473,21 @@
           loadedTeamsData = [];
 
           rows.forEach(row => {
-            if (!row.c || !row.c[1]) return;
-            const teamName = row.c[1] ? row.c[1].v : "";
-            const p1 = row.c[2] ? row.c[2].v : "";
-            const p2 = row.c[3] ? row.c[3].v : "";
-            const p3 = row.c[4] ? row.c[4].v : "";
-            const p4 = row.c[5] ? row.c[5].v : "";
-            const p5 = row.c[6] ? row.c[6].v : "";
+            if (!row.c || !row.c[0]) return;
+            const teamName = row.c[0] ? row.c[0].v : "";
+            
+            // 行にある全選手名を取得
+            const players = [];
+            for (let col = 1; col < row.c.length; col++) {
+              if (row.c[col] && row.c[col].v) {
+                players.push(row.c[col].v);
+              }
+            }
 
             if (teamName) {
               loadedTeamsData.push({
                 teamName: teamName,
-                players: [p1, p2, p3, p4, p5]
+                players: players
               });
             }
           });
@@ -494,7 +497,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("データの取得に失敗しました。スプレッドシートの「Webに公開」設定を確認してください。");
+          alert("データの取得に失敗しました。スプレッドシートのアクセス権（共有設定）を確認してください。");
         });
     }
 
@@ -508,6 +511,7 @@
       });
     }
 
+    /* チームが選ばれたときに、選手名ドロップダウンの選択肢を書き換える */
     function applyTeamPreset(side) {
       const select = document.getElementById(`select-team-${side}-preset`);
       const idx = select.value;
@@ -517,9 +521,18 @@
       document.getElementById(`team-${side}-name-input`).value = team.teamName;
 
       for (let i = 1; i <= 5; i++) {
-        const playerInput = document.getElementById(`input-${side}-${i}`);
-        if (playerInput && team.players[i - 1]) {
-          playerInput.value = team.players[i - 1];
+        const playerSelect = document.getElementById(`select-player-${side}-${i}`);
+        if (playerSelect) {
+          let optionsHtml = '';
+          team.players.forEach(p => {
+            optionsHtml += `<option value="${p}">${p}</option>`;
+          });
+          playerSelect.innerHTML = optionsHtml;
+          
+          // 初期位置としてi番目の選手を選択（足りない場合は最後の選手）
+          if (team.players[i - 1]) {
+            playerSelect.value = team.players[i - 1];
+          }
         }
       }
 
@@ -571,9 +584,14 @@
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
-          if (document.getElementById(`input-${id}`)) {
-            document.getElementById(`input-${id}`).value = p.name;
-            document.getElementById(`select-${id}`).value = p.agent;
+          const pSelect = document.getElementById(`select-player-${id}`);
+          if (pSelect) {
+            // ドロップダウンに値がなければ動的に追加して選択する
+            if (!Array.from(pSelect.options).some(opt => opt.value === p.name)) {
+              pSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            }
+            pSelect.value = p.name;
+            document.getElementById(`select-agent-${id}`).value = p.agent;
             document.getElementById(`name-${id}`).innerText = p.name;
             document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
           }
@@ -617,10 +635,10 @@
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(team => {
           const id = `${team}-${i}`;
-          const inputVal = document.getElementById(`input-${id}`).value;
-          const selectVal = document.getElementById(`select-${id}`).value;
-          document.getElementById(`name-${id}`).innerText = inputVal;
-          document.getElementById(`img-${id}`).src = `images/${selectVal}.png`;
+          const selectedPlayer = document.getElementById(`select-player-${id}`).value;
+          const selectAgent = document.getElementById(`select-agent-${id}`).value;
+          document.getElementById(`name-${id}`).innerText = selectedPlayer;
+          document.getElementById(`img-${id}`).src = `images/${selectAgent}.png`;
         });
       }
 
@@ -640,8 +658,8 @@
           ['blue', 'red'].forEach(team => {
             const id = `${team}-${i}`;
             data.players[id] = {
-              name: document.getElementById(`input-${id}`).value,
-              agent: document.getElementById(`select-${id}`).value
+              name: document.getElementById(`select-player-${id}`).value,
+              agent: document.getElementById(`select-agent-${id}`).value
             };
           });
         }
