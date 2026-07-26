@@ -115,34 +115,30 @@
       pointer-events: none;
     }
 
-    /* 1. チームバナー領域 */
+    /* 1. チームバナー領域 (左右完全対称設定) */
     /* BLUE (左チーム Y: 726px 〜 838px / 高さ 112px) */
     #team-banner-blue {
       position: absolute;
       top: 726px;
-      left: 0px;
-      width: 800px;
+      left: 25px;
       height: 112px;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      padding-left: 25px;
       box-sizing: border-box;
       gap: 15px;
     }
 
-    /* RED (右チーム: 赤色帯の範囲 X:1600px〜1920px に完全に配置) */
+    /* RED (右チーム Y: 726px 〜 838px / 高さ 112px) */
     #team-banner-red {
       position: absolute;
       top: 726px;
-      left: 1600px;
-      width: 320px;
+      right: 25px;
       height: 112px;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       flex-direction: row-reverse;
-      padding-right: 40px;
       box-sizing: border-box;
       gap: 15px;
     }
@@ -161,9 +157,6 @@
       letter-spacing: 0.5px;
       text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 250px;
       line-height: 1;
     }
 
