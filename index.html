@@ -116,7 +116,6 @@
     }
 
     /* 1. チームバナー領域 (左右完全対称設定) */
-    /* BLUE (左チーム Y: 726px 〜 838px / 高さ 112px) */
     #team-banner-blue {
       position: absolute;
       top: 726px;
@@ -129,7 +128,6 @@
       gap: 15px;
     }
 
-    /* RED (右チーム Y: 726px 〜 838px / 高さ 112px) */
     #team-banner-red {
       position: absolute;
       top: 726px;
@@ -160,7 +158,7 @@
       line-height: 1;
     }
 
-    /* 2. 中央 Game1 表示 (Y: 778px 〜 838px / 高さ 60px) */
+    /* 2. 中央 Game1 表示 */
     #game-title-display {
       position: absolute;
       left: 800px;
@@ -177,7 +175,7 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
     }
 
-    /* 3. エージェント画像＆マップ画像枠 (Y: 856px 〜 1018px / 高さ 162px) */
+    /* 3. エージェント画像＆マップ画像枠 */
     .player-item {
       position: absolute;
       top: 856px;
@@ -197,7 +195,6 @@
       object-position: top center;
     }
 
-    /* 中央マップ画像枠 */
     #map-item {
       position: absolute;
       left: 800px;
@@ -216,7 +213,7 @@
       object-fit: cover;
     }
 
-    /* 4. 最下部 プレイヤー名＆マップ名枠 (Y: 1018px 〜 1080px / 高さ 62px) */
+    /* 4. 最下部 プレイヤー名＆マップ名枠 */
     .player-name-container {
       position: absolute;
       top: 1018px;
@@ -482,10 +479,11 @@
 
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
-            const teamName = row.c[0] ? row.c[0].v : "";
+            const teamName = row.c[0] ? row.c[0].v : ""; // A列: チーム名
             
+            // C列(インデックス2)以降を選手名として取得 (B列の略称はスキップ)
             const players = [];
-            for (let col = 1; col < row.c.length; col++) {
+            for (let col = 2; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
               }
