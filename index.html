@@ -360,18 +360,19 @@
         { id: "brimstone", name: "ブリムストーン" }, { id: "omen", name: "オーメン" },
         { id: "viper", name: "ヴァイパー" }, { id: "astra", name: "アストラ" },
         { id: "harbor", name: "ハーバー" }, { id: "clove", name: "クローヴ" },
-        { id: "miks", name: "ミクス" }
+        { id: "mix", name: "ミクス" }
       ]},
       { category: "センチネル", list: [
         { id: "sage", name: "セージ" }, { id: "cypher", name: "サイファー" },
         { id: "killjoy", name: "キルジョイ" }, { id: "chamber", name: "チェンバー" },
         { id: "deadlock", name: "デッドロック" }, { id: "vyse", name: "ヴァイス" },
-        { id: "veto", name: "ヴィトー" }
+        { id: "vito", name: "ヴィトー" }
       ]}
     ];
 
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     let loadedTeamsData = [];
+    let isRemoteUpdating = false; // 外部からの受信による変更かどうかのフラグ
 
     function createAgentSelectHTML(id) {
       let html = `<select id="select-agent-${id}" onchange="sendState()">`;
@@ -544,6 +545,7 @@
 
     function renderUI(data) {
       if (!data) return;
+      isRemoteUpdating = true; // 外部からの更新中フラグを立てる
 
       if (data.gameTitle !== undefined) {
         document.getElementById('game-title-input').value = data.gameTitle;
@@ -599,10 +601,16 @@
           }
         });
       }
+
+      setTimeout(() => {
+        isRemoteUpdating = false; // フラグを戻す
+      }, 200);
     }
 
     let sendTimer = null;
     function sendState() {
+      if (isRemoteUpdating) return; // 外部からの更新反映による再送信を防ぐ
+
       const gameTitle = document.getElementById('game-title-input').value;
       document.getElementById('game-title-display').innerText = gameTitle;
 
