@@ -94,6 +94,13 @@
       box-sizing: border-box;
     }
 
+    .input-label-sm {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: -2px;
+      margin-bottom: 2px;
+    }
+
     .btn-action {
       background: #2ecc71;
       color: #111;
@@ -304,8 +311,10 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
+      <div class="input-label-sm">チーム名</div>
       <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像URL (例: https://lh3.googleusercontent.com/d/...)">
+      <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
+      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="https://lh3.googleusercontent.com/d/...">
     </div>
     <div id="blue-controls"></div>
 
@@ -320,8 +329,10 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
+      <div class="input-label-sm">チーム名</div>
       <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像URL (例: https://lh3.googleusercontent.com/d/...)">
+      <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
+      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="https://lh3.googleusercontent.com/d/...">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -391,15 +402,12 @@
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
 
-    // ロゴのパスを解決する関数（GoogleドライブのURLや通常のファイル名をそのまま扱える）
     function resolveLogoPath(input) {
       if (!input) return "";
       const val = String(input).trim();
-      // http や https から始まるURL（Googleドライブのリンクなど）ならそのまま返す
       if (val.startsWith("http://") || val.startsWith("https://")) {
         return val;
       }
-      // 通常のファイル名（例: 3s.png）なら images/ フォルダと結合
       const cleaned = val.toLowerCase().replace(/\s+/g, '');
       if (!cleaned) return "";
       return cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
@@ -512,7 +520,6 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : ""; 
-            // C列（インデックス2）またはB列（インデックス1）からテキスト情報を取得
             const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : ((row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "");
             
             const players = [];
