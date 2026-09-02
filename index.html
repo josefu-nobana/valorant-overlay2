@@ -105,6 +105,23 @@
       margin-top: 4px;
     }
 
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .btn-control {
+      flex: 1;
+      padding: 8px;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-char { background: #3498db; color: white; }
+    .btn-reset { background: #e74c3c; color: white; }
+
     /* --- OVERLAY CANVAS (1920x1080) --- */
     #overlay-container {
       width: 1920px;
@@ -115,7 +132,6 @@
       pointer-events: none;
     }
 
-    /* 1. チームバナー領域 (左右完全対称設定) */
     #team-banner-blue {
       position: absolute;
       top: 726px;
@@ -158,7 +174,6 @@
       line-height: 1;
     }
 
-    /* 2. 中央 Game1 表示 */
     #game-title-display {
       position: absolute;
       left: 800px;
@@ -175,7 +190,6 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
     }
 
-    /* 3. エージェント画像＆マップ画像枠 */
     .player-item {
       position: absolute;
       top: 856px;
@@ -213,7 +227,6 @@
       object-fit: cover;
     }
 
-    /* 4. 最下部 プレイヤー名＆マップ名枠 */
     .player-name-container {
       position: absolute;
       top: 1018px;
@@ -255,7 +268,6 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
     }
 
-    /* 横位置 X座標の指定 (160px刻み) */
     #item-blue-1, #name-container-blue-1 { left: 0px; }
     #item-blue-2, #name-container-blue-2 { left: 160px; }
     #item-blue-3, #name-container-blue-3 { left: 320px; }
@@ -275,6 +287,12 @@
 
   <div id="admin-panel">
     <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">大会オーバーレイ管理</h3>
+
+    <!-- 操作用ボタンエリア -->
+    <div class="btn-group">
+      <button class="btn-control btn-char" onclick="resetCharacters()">キャラクター</button>
+      <button class="btn-control btn-reset" onclick="resetAllState()">リセット</button>
+    </div>
 
     <div class="team-title sheet-title">📊 Googleスプレッドシート連携</div>
     <div class="team-info-box">
@@ -372,7 +390,7 @@
 
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     let loadedTeamsData = [];
-    let isRemoteUpdating = false; // 外部からの受信による変更かどうかのフラグ
+    let isRemoteUpdating = false;
 
     function createAgentSelectHTML(id) {
       let html = `<select id="select-agent-${id}" onchange="sendState()">`;
@@ -480,9 +498,8 @@
 
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
-            const teamName = row.c[0] ? row.c[0].v : ""; // A列: チーム名
+            const teamName = row.c[0] ? row.c[0].v : ""; 
             
-            // C列(インデックス2)以降を選手名として取得 (B列の略称はスキップ)
             const players = [];
             for (let col = 2; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
@@ -543,9 +560,47 @@
       sendState();
     }
 
+    // キャラクター（エージェント）の選択を初期状態（ジェット＆デフォルト名）に戻す
+    function resetCharacters() {
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(team => {
+          const id = `${team}-${i}`;
+          const defaultName = `Player ${i}`;
+          
+          const playerSelect = document.getElementById(`select-player-${id}`);
+          if (playerSelect) {
+            playerSelect.innerHTML = `<option value="${defaultName}">${defaultName}</option>`;
+            playerSelect.value = defaultName;
+          }
+
+          const agentSelect = document.getElementById(`select-agent-${id}`);
+          if (agentSelect) {
+            agentSelect.value = "jett";
+          }
+        });
+      }
+      sendState();
+    }
+
+    // サイトを開いた直後の状態に完全リセットする
+    function resetAllState() {
+      document.getElementById('sheet-id-input').value = "";
+      document.getElementById('game-title-input').value = "Game1";
+      document.getElementById('map-select').value = "sunset";
+
+      document.getElementById('team-blue-name-input').value = "FANCY Esports";
+      document.getElementById('team-blue-logo-input').value = "";
+      document.getElementById('team-red-name-input').value = "AXELIA B";
+      document.getElementById('team-red-logo-input').value = "";
+
+      loadedTeamsData = [];
+      updateTeamDropdowns();
+      resetCharacters();
+    }
+
     function renderUI(data) {
       if (!data) return;
-      isRemoteUpdating = true; // 外部からの更新中フラグを立てる
+      isRemoteUpdating = true;
 
       if (data.gameTitle !== undefined) {
         document.getElementById('game-title-input').value = data.gameTitle;
@@ -556,6 +611,7 @@
         if (data.teams.blue) {
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
+          document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           
           const blueLogoImg = document.getElementById('team-blue-logo-img');
           if (data.teams.blue.logo) {
@@ -569,6 +625,7 @@
         if (data.teams.red) {
           document.getElementById('team-red-name-input').value = data.teams.red.name;
           document.getElementById('team-red-name').innerText = data.teams.red.name;
+          document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
 
           const redLogoImg = document.getElementById('team-red-logo-img');
           if (data.teams.red.logo) {
@@ -603,13 +660,13 @@
       }
 
       setTimeout(() => {
-        isRemoteUpdating = false; // フラグを戻す
+        isRemoteUpdating = false;
       }, 200);
     }
 
     let sendTimer = null;
     function sendState() {
-      if (isRemoteUpdating) return; // 外部からの更新反映による再送信を防ぐ
+      if (isRemoteUpdating) return;
 
       const gameTitle = document.getElementById('game-title-input').value;
       document.getElementById('game-title-display').innerText = gameTitle;
