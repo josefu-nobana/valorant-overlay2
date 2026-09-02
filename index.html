@@ -519,11 +519,16 @@
 
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
-            const teamName = row.c[0] ? row.c[0].v : ""; 
-            const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : ((row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "");
+            
+            // 【修正】スプレッドシートの列の割り当てを変更
+            // A列 (index 0): チーム名
+            // B列 (index 1): ロゴ画像URL
+            // C列以降 (index 2〜): 選手名
+            const teamName = (row.c[0] && row.c[0].v) ? String(row.c[0].v).trim() : ""; 
+            const teamLogo = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
             
             const players = [];
-            for (let col = 3; col < row.c.length; col++) {
+            for (let col = 2; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
               }
@@ -803,13 +808,13 @@
     function listenForUpdates() {
       const eventSource = new EventSource(TOPIC_URL + "/sse");
       eventSource.onmessage = (event) => {
-        try {
+        text => {
           const message = JSON.parse(event.data);
           if (message && message.message) {
             const data = JSON.parse(message.message);
             renderUI(data);
           }
-        } catch (e) {}
+        }
       };
     }
 
