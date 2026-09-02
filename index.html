@@ -406,11 +406,15 @@
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
 
-    function resolveLogoPath(input) {
-      if (!input) return "";
-      let val = String(input).trim();
-      
-      // Googleドライブの共有リンクからファイルIDを抽出して直接表示用URLに変換する
+    // Googleドライブ等の外部画像をCORS回避して描画表示する関数
+    function setSafeImage(url, imgElement) {
+      if (!url) {
+        imgElement.style.display = 'none';
+        return;
+      }
+      let val = String(url).trim();
+
+      // GoogleドライブのリンクからファイルIDを抽出
       if (val.includes("drive.google.com") || val.includes("googleusercontent.com")) {
         let fileId = "";
         const matchId = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -423,17 +427,40 @@
           }
         }
         if (fileId) {
-          return `https://lh3.googleusercontent.com/d/${fileId}`;
+          val = `https://lh3.googleusercontent.com/d/${fileId}`;
         }
       }
 
-      if (val.startsWith("http://") || val.startsWith("https://")) {
-        return val;
+      // ローカル画像の場合
+      if (!val.startsWith("http://") && !val.startsWith("https://")) {
+        const cleaned = val.toLowerCase().replace(/\s+/g, '');
+        imgElement.src = cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
+        imgElement.style.display = 'block';
+        return;
       }
 
-      const cleaned = val.toLowerCase().replace(/\s+/g, '');
-      if (!cleaned) return "";
-      return cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
+      // 外部画像（Googleドライブ等）をCanvas経由で読み込み
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          imgElement.src = canvas.toDataURL("image/png");
+          imgElement.style.display = 'block';
+        } catch (e) {
+          imgElement.src = val;
+          imgElement.style.display = 'block';
+        }
+      };
+      img.onerror = function() {
+        imgElement.src = val; // 失敗時はそのまま直リンクをセット
+        imgElement.style.display = 'block';
+      };
+      img.src = val + (val.includes("?") ? "&" : "?") + "t=" + new Date().getTime();
     }
 
     function createAgentSelectHTML(id) {
@@ -694,15 +721,7 @@
           document.getElementById('team-blue-short-input').value = data.teams.blue.short || "";
           document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
-          
-          const blueLogoImg = document.getElementById('team-blue-logo-img');
-          const bluePath = resolveLogoPath(data.teams.blue.logo);
-          if (bluePath) {
-            blueLogoImg.src = bluePath;
-            blueLogoImg.style.display = 'block';
-          } else {
-            blueLogoImg.style.display = 'none';
-          }
+          setSafeImage(data.teams.blue.logo, document.getElementById('team-blue-logo-img'));
         }
 
         if (data.teams.red) {
@@ -710,15 +729,7 @@
           document.getElementById('team-red-short-input').value = data.teams.red.short || "";
           document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
           document.getElementById('team-red-name').innerText = data.teams.red.name;
-
-          const redLogoImg = document.getElementById('team-red-logo-img');
-          const redPath = resolveLogoPath(data.teams.red.logo);
-          if (redPath) {
-            redLogoImg.src = redPath;
-            redLogoImg.style.display = 'block';
-          } else {
-            redLogoImg.style.display = 'none';
-          }
+          setSafeImage(data.teams.red.logo, document.getElementById('team-red-logo-img'));
         }
       }
 
@@ -768,23 +779,8 @@
       document.getElementById('team-blue-name').innerText = blueName;
       document.getElementById('team-red-name').innerText = redName;
 
-      const blueLogoImg = document.getElementById('team-blue-logo-img');
-      const bluePath = resolveLogoPath(blueLogo);
-      if (bluePath) {
-        blueLogoImg.src = bluePath;
-        blueLogoImg.style.display = 'block';
-      } else {
-        blueLogoImg.style.display = 'none';
-      }
-
-      const redLogoImg = document.getElementById('team-red-logo-img');
-      const redPath = resolveLogoPath(redLogo);
-      if (redPath) {
-        redLogoImg.src = redPath;
-        redLogoImg.style.display = 'block';
-      } else {
-        redLogoImg.style.display = 'none';
-      }
+      setSafeImage(blueLogo, document.getElementById('team-blue-logo-img'));
+      setSafeImage(redLogo, document.getElementById('team-red-logo-img'));
 
       const mapVal = document.getElementById('map-select').value;
       document.getElementById('map-img-display').src = `images/${mapVal}.png`;
