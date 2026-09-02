@@ -288,7 +288,6 @@
   <div id="admin-panel">
     <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">大会オーバーレイ管理</h3>
 
-    <!-- 操作用ボタンエリア -->
     <div class="btn-group">
       <button class="btn-control btn-char" onclick="resetCharacters()">キャラクター</button>
       <button class="btn-control btn-reset" onclick="resetAllState()">リセット</button>
@@ -560,19 +559,11 @@
       sendState();
     }
 
-    // キャラクター（エージェント）の選択を初期状態（ジェット＆デフォルト名）に戻す
+    // ★キャラクター（エージェント）の選択だけをジェットに初期化（プレイヤー名はそのまま保持）
     function resetCharacters() {
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(team => {
           const id = `${team}-${i}`;
-          const defaultName = `Player ${i}`;
-          
-          const playerSelect = document.getElementById(`select-player-${id}`);
-          if (playerSelect) {
-            playerSelect.innerHTML = `<option value="${defaultName}">${defaultName}</option>`;
-            playerSelect.value = defaultName;
-          }
-
           const agentSelect = document.getElementById(`select-agent-${id}`);
           if (agentSelect) {
             agentSelect.value = "jett";
@@ -595,7 +586,24 @@
 
       loadedTeamsData = [];
       updateTeamDropdowns();
-      resetCharacters();
+
+      // 完全リセット時はプレイヤー名もデフォルト（Player 1〜5）に戻す
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(team => {
+          const id = `${team}-${i}`;
+          const defaultName = `Player ${i}`;
+          const playerSelect = document.getElementById(`select-player-${id}`);
+          if (playerSelect) {
+            playerSelect.innerHTML = `<option value="${defaultName}">${defaultName}</option>`;
+            playerSelect.value = defaultName;
+          }
+          const agentSelect = document.getElementById(`select-agent-${id}`);
+          if (agentSelect) {
+            agentSelect.value = "jett";
+          }
+        });
+      }
+      sendState();
     }
 
     function renderUI(data) {
