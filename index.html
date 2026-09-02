@@ -343,12 +343,12 @@
 
   <div id="overlay-container">
     <div id="team-banner-blue">
-      <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
+      <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;" onerror="this.style.display='none';">
       <div id="team-blue-name" class="team-banner-name">SETOUCHI SPARKS</div>
     </div>
 
     <div id="team-banner-red">
-      <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;">
+      <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;" onerror="this.style.display='none';">
       <div id="team-red-name" class="team-banner-name">AXELIA A</div>
     </div>
 
@@ -408,10 +408,29 @@
 
     function resolveLogoPath(input) {
       if (!input) return "";
-      const val = String(input).trim();
+      let val = String(input).trim();
+      
+      // Googleドライブの共有リンクからファイルIDを抽出して直接表示用URLに変換する
+      if (val.includes("drive.google.com") || val.includes("googleusercontent.com")) {
+        let fileId = "";
+        const matchId = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (matchId && matchId[1]) {
+          fileId = matchId[1];
+        } else {
+          const matchParam = val.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+          if (matchParam && matchParam[1]) {
+            fileId = matchParam[1];
+          }
+        }
+        if (fileId) {
+          return `https://lh3.googleusercontent.com/d/${fileId}`;
+        }
+      }
+
       if (val.startsWith("http://") || val.startsWith("https://")) {
         return val;
       }
+
       const cleaned = val.toLowerCase().replace(/\s+/g, '');
       if (!cleaned) return "";
       return cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
@@ -524,11 +543,6 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             
-            // スプレッドシートの列の割り当て:
-            // A列 (index 0): チーム名
-            // B列 (index 1): 省略
-            // C列 (index 2): URL (ロゴ画像)
-            // D列以降 (index 3〜): 選手名
             const teamName = (row.c[0] && row.c[0].v) ? String(row.c[0].v).trim() : ""; 
             const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
             const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : "";
