@@ -315,7 +315,7 @@
       <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
       <div class="input-label-sm">省略</div>
       <input type="text" id="team-blue-short-input" value="" oninput="sendState()" placeholder="省略名">
-      <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
+      <div class="input-label-sm">ロゴ画像URL または =IMAGE(...)</div>
       <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="https://...">
     </div>
     <div id="blue-controls"></div>
@@ -335,7 +335,7 @@
       <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
       <div class="input-label-sm">省略</div>
       <input type="text" id="team-red-short-input" value="" oninput="sendState()" placeholder="省略名">
-      <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
+      <div class="input-label-sm">ロゴ画像URL または =IMAGE(...)</div>
       <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="https://...">
     </div>
     <div id="red-controls"></div>
@@ -406,7 +406,7 @@
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
 
-    // Googleドライブ等の外部画像をCORS回避して描画表示する関数
+    // スプレッドシートから取得した文字列（=IMAGE("...") や URL）を安全に処理して表示する関数
     function setSafeImage(url, imgElement) {
       if (!url) {
         imgElement.style.display = 'none';
@@ -414,7 +414,13 @@
       }
       let val = String(url).trim();
 
-      // GoogleドライブのリンクからファイルIDを抽出
+      // =IMAGE("...") の形式で入力されている場合、中のURLを抽出する
+      const matchImageFunc = val.match(/=IMAGE\s*\(\s*["']([^"']+)["']\s*\)/i);
+      if (matchImageFunc && matchImageFunc[1]) {
+        val = matchImageFunc[1];
+      }
+
+      // GoogleドライブのリンクからファイルIDを抽出して再構築
       if (val.includes("drive.google.com") || val.includes("googleusercontent.com")) {
         let fileId = "";
         const matchId = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -439,7 +445,7 @@
         return;
       }
 
-      // 外部画像（Googleドライブ等）をCanvas経由で読み込み
+      // 外部画像（Googleドライブ等）をCanvas経由で読み込み（CORS回避）
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = function() {
@@ -457,7 +463,7 @@
         }
       };
       img.onerror = function() {
-        imgElement.src = val; // 失敗時はそのまま直リンクをセット
+        imgElement.src = val;
         imgElement.style.display = 'block';
       };
       img.src = val + (val.includes("?") ? "&" : "?") + "t=" + new Date().getTime();
@@ -572,7 +578,19 @@
             
             const teamName = (row.c[0] && row.c[0].v) ? String(row.c[0].v).trim() : ""; 
             const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
-            const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : "";
+            
+            // =IMAGE(...) が入っている場合に対応してURLを抽出
+            let teamLogo = "";
+            if (row.c[2]) {
+              const rawLogo = row.c[2].v !== undefined ? row.c[2].v : (row.c[2].f !== undefined ? row.c[2].f : "");
+              const strLogo = String(rawLogo).trim();
+              const matchImg = strLogo.match(/=IMAGE\s*\(\s*["']([^"']+)["']\s*\)/i);
+              if (matchImg && matchImg[1]) {
+                teamLogo = matchImg[1];
+              } else {
+                teamLogo = strLogo;
+              }
+            }
             
             const players = [];
             for (let col = 3; col < row.c.length; col++) {
@@ -593,7 +611,7 @@
 
           updateTeamDropdowns();
           sendState();
-          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！（=IMAGEの抽出にも対応しました）`);
         })
         .catch(err => {
           console.error(err);
