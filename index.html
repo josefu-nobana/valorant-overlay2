@@ -305,7 +305,7 @@
         <option value="">-- シートからチームを選択 --</option>
       </select>
       <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-short-input" value="3s" oninput="sendState()" placeholder="略称 (例: 3s -> 3s.png)">
+      <input type="text" id="team-blue-short-input" value="3S" oninput="sendState()" placeholder="略称 (例: 3S -> 3s.png)">
     </div>
     <div id="blue-controls"></div>
 
@@ -321,7 +321,7 @@
         <option value="">-- シートからチームを選択 --</option>
       </select>
       <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-short-input" value="axe_a" oninput="sendState()" placeholder="略称 (例: axe_a -> axe_a.png)">
+      <input type="text" id="team-red-short-input" value="AXE A" oninput="sendState()" placeholder="略称 (例: AXE A -> axea.png または axe_a.png)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -390,6 +390,15 @@
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
+
+    // 略称からファイル名を作成するヘルパー（スペースを除去し小文字にする）
+    function getLogoFilename(shortText) {
+      if (!shortText) return "";
+      // スペースを削除して小文字にする（例: "AXE A" -> "axea.png"）
+      // もしアバウトにしたい場合は replace(/\s+/g, '_') にすると "axe_a.png" になります
+      const cleaned = String(shortText).trim().toLowerCase().replace(/\s+/g, '');
+      return cleaned ? `${cleaned}.png` : "";
+    }
 
     function createAgentSelectHTML(id) {
       let html = `<select id="select-agent-${id}" onchange="sendState()">`;
@@ -498,7 +507,7 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : ""; 
-            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : ""; // B列: 略称 (小文字画像名などに活用)
+            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : ""; // B列: 略称
             
             const players = [];
             // D列（インデックス3）以降をプレイヤー名として取得（C列の画像セルはスキップ）
@@ -586,9 +595,9 @@
       document.getElementById('map-select').value = "sunset";
 
       document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS";
-      document.getElementById('team-blue-short-input').value = "3s";
+      document.getElementById('team-blue-short-input').value = "3S";
       document.getElementById('team-red-name-input').value = "AXELIA A";
-      document.getElementById('team-red-short-input').value = "axe_a";
+      document.getElementById('team-red-short-input').value = "AXE A";
 
       loadedTeamsData = [];
       updateTeamDropdowns();
@@ -645,8 +654,9 @@
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
           
           const blueLogoImg = document.getElementById('team-blue-logo-img');
-          if (data.teams.blue.short) {
-            blueLogoImg.src = `images/${data.teams.blue.short.toLowerCase()}.png`;
+          const blueLogoFile = getLogoFilename(data.teams.blue.short);
+          if (blueLogoFile) {
+            blueLogoImg.src = `images/${blueLogoFile}`;
             blueLogoImg.style.display = 'block';
           } else {
             blueLogoImg.style.display = 'none';
@@ -659,8 +669,9 @@
           document.getElementById('team-red-name').innerText = data.teams.red.name;
 
           const redLogoImg = document.getElementById('team-red-logo-img');
-          if (data.teams.red.short) {
-            redLogoImg.src = `images/${data.teams.red.short.toLowerCase()}.png`;
+          const redLogoFile = getLogoFilename(data.teams.red.short);
+          if (redLogoFile) {
+            redLogoImg.src = `images/${redLogoFile}`;
             redLogoImg.style.display = 'block';
           } else {
             redLogoImg.style.display = 'none';
@@ -712,16 +723,18 @@
       document.getElementById('team-red-name').innerText = redName;
 
       const blueLogoImg = document.getElementById('team-blue-logo-img');
-      if (blueShort) {
-        blueLogoImg.src = `images/${blueShort.toLowerCase()}.png`;
+      const blueLogoFile = getLogoFilename(blueShort);
+      if (blueLogoFile) {
+        blueLogoImg.src = `images/${blueLogoFile}`;
         blueLogoImg.style.display = 'block';
       } else {
         blueLogoImg.style.display = 'none';
       }
 
       const redLogoImg = document.getElementById('team-red-logo-img');
-      if (redShort) {
-        redLogoImg.src = `images/${redShort.toLowerCase()}.png`;
+      const redLogoFile = getLogoFilename(redShort);
+      if (redLogoFile) {
+        redLogoImg.src = `images/${redLogoFile}`;
         redLogoImg.style.display = 'block';
       } else {
         redLogoImg.style.display = 'none';
