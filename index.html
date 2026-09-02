@@ -313,8 +313,10 @@
       </select>
       <div class="input-label-sm">チーム名</div>
       <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
+      <div class="input-label-sm">省略</div>
+      <input type="text" id="team-blue-short-input" value="" oninput="sendState()" placeholder="省略名">
       <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
-      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="https://lh3.googleusercontent.com/d/...">
+      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="https://...">
     </div>
     <div id="blue-controls"></div>
 
@@ -331,8 +333,10 @@
       </select>
       <div class="input-label-sm">チーム名</div>
       <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
+      <div class="input-label-sm">省略</div>
+      <input type="text" id="team-red-short-input" value="" oninput="sendState()" placeholder="省略名">
       <div class="input-label-sm">ロゴ画像URL (ドライブ等)</div>
-      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="https://lh3.googleusercontent.com/d/...">
+      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="https://...">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -520,15 +524,17 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             
-            // 【修正】スプレッドシートの列の割り当てを変更
+            // スプレッドシートの列の割り当て:
             // A列 (index 0): チーム名
-            // B列 (index 1): ロゴ画像URL
-            // C列以降 (index 2〜): 選手名
+            // B列 (index 1): 省略
+            // C列 (index 2): URL (ロゴ画像)
+            // D列以降 (index 3〜): 選手名
             const teamName = (row.c[0] && row.c[0].v) ? String(row.c[0].v).trim() : ""; 
-            const teamLogo = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
+            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
+            const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : "";
             
             const players = [];
-            for (let col = 2; col < row.c.length; col++) {
+            for (let col = 3; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
               }
@@ -537,6 +543,7 @@
             if (teamName) {
               loadedTeamsData.push({
                 teamName: teamName,
+                teamShort: teamShort,
                 teamLogo: teamLogo,
                 players: players
               });
@@ -572,6 +579,7 @@
 
       const team = loadedTeamsData[idx];
       document.getElementById(`team-${side}-name-input`).value = team.teamName;
+      document.getElementById(`team-${side}-short-input`).value = team.teamShort;
       document.getElementById(`team-${side}-logo-input`).value = team.teamLogo;
 
       for (let i = 1; i <= 5; i++) {
@@ -611,8 +619,11 @@
       document.getElementById('map-select').value = "sunset";
 
       document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS";
+      document.getElementById('team-blue-short-input').value = "";
       document.getElementById('team-blue-logo-input').value = "";
+      
       document.getElementById('team-red-name-input').value = "AXELIA A";
+      document.getElementById('team-red-short-input').value = "";
       document.getElementById('team-red-logo-input').value = "";
 
       loadedTeamsData = [];
@@ -666,6 +677,7 @@
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
+          document.getElementById('team-blue-short-input').value = data.teams.blue.short || "";
           document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
           
@@ -681,6 +693,7 @@
 
         if (data.teams.red) {
           document.getElementById('team-red-name-input').value = data.teams.red.name;
+          document.getElementById('team-red-short-input').value = data.teams.red.short || "";
           document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
           document.getElementById('team-red-name').innerText = data.teams.red.name;
 
@@ -731,8 +744,11 @@
       document.getElementById('game-title-display').innerText = gameTitle;
 
       const blueName = document.getElementById('team-blue-name-input').value;
+      const blueShort = document.getElementById('team-blue-short-input').value;
       const blueLogo = document.getElementById('team-blue-logo-input').value;
+
       const redName = document.getElementById('team-red-name-input').value;
+      const redShort = document.getElementById('team-red-short-input').value;
       const redLogo = document.getElementById('team-red-logo-input').value;
 
       document.getElementById('team-blue-name').innerText = blueName;
@@ -781,8 +797,8 @@
           },
           gameTitle: gameTitle,
           teams: {
-            blue: { name: blueName, logo: blueLogo },
-            red: { name: redName, logo: redLogo }
+            blue: { name: blueName, short: blueShort, logo: blueLogo },
+            red: { name: redName, short: redShort, logo: redLogo }
           },
           map: mapVal,
           players: {}
@@ -808,13 +824,13 @@
     function listenForUpdates() {
       const eventSource = new EventSource(TOPIC_URL + "/sse");
       eventSource.onmessage = (event) => {
-        text => {
+        try {
           const message = JSON.parse(event.data);
           if (message && message.message) {
             const data = JSON.parse(message.message);
             renderUI(data);
           }
-        }
+        } catch (e) {}
       };
     }
 
