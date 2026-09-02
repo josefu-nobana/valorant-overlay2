@@ -295,7 +295,7 @@
 
     <div class="team-title sheet-title">📊 Googleスプレッドシート連携</div>
     <div class="team-info-box">
-      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
+      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力" oninput="sendState()">
       <button class="btn-action" onclick="fetchSheetData()">データ読み込み</button>
     </div>
 
@@ -479,6 +479,7 @@
       listenForUpdates();
     }
 
+    // スプレッドシートデータを読み込み、自動で全端末に共有する
     function fetchSheetData() {
       const sheetId = document.getElementById('sheet-id-input').value.trim();
       if (!sheetId) {
@@ -515,6 +516,7 @@
           });
 
           updateTeamDropdowns();
+          sendState(); // 読み込んだデータ（リスト）を他のPCにも同期
           alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
         })
         .catch(err => {
@@ -526,10 +528,12 @@
     function updateTeamDropdowns() {
       ['blue', 'red'].forEach(side => {
         const select = document.getElementById(`select-team-${side}-preset`);
+        const currentVal = select.value;
         select.innerHTML = '<option value="">-- シートからチームを選択 --</option>';
         loadedTeamsData.forEach((t, idx) => {
           select.innerHTML += `<option value="${idx}">${t.teamName}</option>`;
         });
+        select.value = currentVal;
       });
     }
 
@@ -559,7 +563,6 @@
       sendState();
     }
 
-    // ★キャラクター（エージェント）の選択だけをジェットに初期化（プレイヤー名はそのまま保持）
     function resetCharacters() {
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(team => {
@@ -573,7 +576,6 @@
       sendState();
     }
 
-    // サイトを開いた直後の状態に完全リセットする
     function resetAllState() {
       document.getElementById('sheet-id-input').value = "";
       document.getElementById('game-title-input').value = "Game1";
@@ -587,7 +589,6 @@
       loadedTeamsData = [];
       updateTeamDropdowns();
 
-      // 完全リセット時はプレイヤー名もデフォルト（Player 1〜5）に戻す
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(team => {
           const id = `${team}-${i}`;
@@ -609,6 +610,24 @@
     function renderUI(data) {
       if (!data) return;
       isRemoteUpdating = true;
+
+      if (data.sheetId !== undefined) {
+        document.getElementById('sheet-id-input').value = data.sheetId;
+      }
+
+      if (data.loadedTeamsData) {
+        loadedTeamsData = data.loadedTeamsData;
+        updateTeamDropdowns();
+      }
+
+      if (data.selectedPresets) {
+        if (data.selectedPresets.blue !== undefined) {
+          document.getElementById('select-team-blue-preset').value = data.selectedPresets.blue;
+        }
+        if (data.selectedPresets.red !== undefined) {
+          document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
+        }
+      }
 
       if (data.gameTitle !== undefined) {
         document.getElementById('game-title-input').value = data.gameTitle;
@@ -676,6 +695,7 @@
     function sendState() {
       if (isRemoteUpdating) return;
 
+      const sheetId = document.getElementById('sheet-id-input').value;
       const gameTitle = document.getElementById('game-title-input').value;
       document.getElementById('game-title-display').innerText = gameTitle;
 
@@ -720,6 +740,12 @@
       clearTimeout(sendTimer);
       sendTimer = setTimeout(() => {
         const data = {
+          sheetId: sheetId,
+          loadedTeamsData: loadedTeamsData,
+          selectedPresets: {
+            blue: document.getElementById('select-team-blue-preset').value,
+            red: document.getElementById('select-team-red-preset').value
+          },
           gameTitle: gameTitle,
           teams: {
             blue: { name: blueName, logo: blueLogo },
