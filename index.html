@@ -132,6 +132,7 @@
       pointer-events: none;
     }
 
+    /* チーム名の高さは元のまま維持しつつ、アイコンを横に配置 */
     #team-banner-blue {
       position: absolute;
       top: 726px;
@@ -304,8 +305,9 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-blue-name-input" value="FANCY Esports" oninput="sendState()" placeholder="チーム名 (手入力可)">
-      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_a.png)">
+      <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS A" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-blue-short-input" value="SPA" oninput="sendState()" placeholder="略称 (例: SPA)">
+      <input type="text" id="team-blue-logo-input" value="team_a.png" oninput="sendState()" placeholder="ロゴファイル名 (例: team_a.png)">
     </div>
     <div id="blue-controls"></div>
 
@@ -320,8 +322,9 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-red-name-input" value="AXELIA B" oninput="sendState()" placeholder="チーム名 (手入力可)">
-      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像名 (例: team_b.png)">
+      <input type="text" id="team-red-name-input" value="AXELIA B" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-red-short-input" value="AXL" oninput="sendState()" placeholder="略称 (例: AXL)">
+      <input type="text" id="team-red-logo-input" value="team_b.png" oninput="sendState()" placeholder="ロゴファイル名 (例: team_b.png)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -329,7 +332,7 @@
   <div id="overlay-container">
     <div id="team-banner-blue">
       <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
-      <div id="team-blue-name" class="team-banner-name">FANCY Esports</div>
+      <div id="team-blue-name" class="team-banner-name">SETOUCHI SPARKS A</div>
     </div>
 
     <div id="team-banner-red">
@@ -479,7 +482,6 @@
       listenForUpdates();
     }
 
-    // スプレッドシートデータを読み込み、自動で全端末に共有する
     function fetchSheetData() {
       const sheetId = document.getElementById('sheet-id-input').value.trim();
       if (!sheetId) {
@@ -499,9 +501,12 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : ""; 
+            const teamShort = (row.c[1] && row.c[1].v) ? row.c[1].v : ""; // B列: 略称
+            const teamLogo = (row.c[2] && row.c[2].v) ? row.c[2].v : "";  // C列: ロゴ画像
             
             const players = [];
-            for (let col = 2; col < row.c.length; col++) {
+            // D列（インデックス3）以降をプレイヤー名として取得
+            for (let col = 3; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
               }
@@ -510,13 +515,15 @@
             if (teamName) {
               loadedTeamsData.push({
                 teamName: teamName,
+                teamShort: teamShort,
+                teamLogo: teamLogo,
                 players: players
               });
             }
           });
 
           updateTeamDropdowns();
-          sendState(); // 読み込んだデータ（リスト）を他のPCにも同期
+          sendState();
           alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
         })
         .catch(err => {
@@ -531,7 +538,8 @@
         const currentVal = select.value;
         select.innerHTML = '<option value="">-- シートからチームを選択 --</option>';
         loadedTeamsData.forEach((t, idx) => {
-          select.innerHTML += `<option value="${idx}">${t.teamName}</option>`;
+          const displayLabel = t.teamShort ? `${t.teamName} (${t.teamShort})` : t.teamName;
+          select.innerHTML += `<option value="${idx}">${displayLabel}</option>`;
         });
         select.value = currentVal;
       });
@@ -544,6 +552,8 @@
 
       const team = loadedTeamsData[idx];
       document.getElementById(`team-${side}-name-input`).value = team.teamName;
+      document.getElementById(`team-${side}-short-input`).value = team.teamShort || "";
+      document.getElementById(`team-${side}-logo-input`).value = team.teamLogo || "";
 
       for (let i = 1; i <= 5; i++) {
         const playerSelect = document.getElementById(`select-player-${side}-${i}`);
@@ -581,10 +591,12 @@
       document.getElementById('game-title-input').value = "Game1";
       document.getElementById('map-select').value = "sunset";
 
-      document.getElementById('team-blue-name-input').value = "FANCY Esports";
-      document.getElementById('team-blue-logo-input').value = "";
+      document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS A";
+      document.getElementById('team-blue-short-input').value = "SPA";
+      document.getElementById('team-blue-logo-input').value = "team_a.png";
       document.getElementById('team-red-name-input').value = "AXELIA B";
-      document.getElementById('team-red-logo-input').value = "";
+      document.getElementById('team-red-short-input').value = "AXL";
+      document.getElementById('team-red-logo-input').value = "team_b.png";
 
       loadedTeamsData = [];
       updateTeamDropdowns();
@@ -637,6 +649,7 @@
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
+          document.getElementById('team-blue-short-input').value = data.teams.blue.short || "";
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
           document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           
@@ -651,6 +664,7 @@
 
         if (data.teams.red) {
           document.getElementById('team-red-name-input').value = data.teams.red.name;
+          document.getElementById('team-red-short-input').value = data.teams.red.short || "";
           document.getElementById('team-red-name').innerText = data.teams.red.name;
           document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
 
@@ -700,8 +714,10 @@
       document.getElementById('game-title-display').innerText = gameTitle;
 
       const blueName = document.getElementById('team-blue-name-input').value;
+      const blueShort = document.getElementById('team-blue-short-input').value;
       const blueLogo = document.getElementById('team-blue-logo-input').value;
       const redName = document.getElementById('team-red-name-input').value;
+      const redShort = document.getElementById('team-red-short-input').value;
       const redLogo = document.getElementById('team-red-logo-input').value;
 
       document.getElementById('team-blue-name').innerText = blueName;
@@ -748,8 +764,8 @@
           },
           gameTitle: gameTitle,
           teams: {
-            blue: { name: blueName, logo: blueLogo },
-            red: { name: redName, logo: redLogo }
+            blue: { name: blueName, short: blueShort, logo: blueLogo },
+            red: { name: redName, short: redShort, logo: redLogo }
           },
           map: mapVal,
           players: {}
