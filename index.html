@@ -132,7 +132,6 @@
       pointer-events: none;
     }
 
-    /* チーム名の高さは元のまま維持しつつ、アイコンを横に配置 */
     #team-banner-blue {
       position: absolute;
       top: 726px;
@@ -305,9 +304,8 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS A" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-short-input" value="SPA" oninput="sendState()" placeholder="略称 (例: SPA)">
-      <input type="text" id="team-blue-logo-input" value="team_a.png" oninput="sendState()" placeholder="ロゴファイル名 (例: team_a.png)">
+      <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-blue-short-input" value="3s" oninput="sendState()" placeholder="略称 (例: 3s -> 3s.png)">
     </div>
     <div id="blue-controls"></div>
 
@@ -322,9 +320,8 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <input type="text" id="team-red-name-input" value="AXELIA B" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-short-input" value="AXL" oninput="sendState()" placeholder="略称 (例: AXL)">
-      <input type="text" id="team-red-logo-input" value="team_b.png" oninput="sendState()" placeholder="ロゴファイル名 (例: team_b.png)">
+      <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-red-short-input" value="axe_a" oninput="sendState()" placeholder="略称 (例: axe_a -> axe_a.png)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -332,12 +329,12 @@
   <div id="overlay-container">
     <div id="team-banner-blue">
       <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;">
-      <div id="team-blue-name" class="team-banner-name">SETOUCHI SPARKS A</div>
+      <div id="team-blue-name" class="team-banner-name">SETOUCHI SPARKS</div>
     </div>
 
     <div id="team-banner-red">
       <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;">
-      <div id="team-red-name" class="team-banner-name">AXELIA B</div>
+      <div id="team-red-name" class="team-banner-name">AXELIA A</div>
     </div>
 
     <div id="game-title-display">Game1</div>
@@ -501,11 +498,10 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : ""; 
-            const teamShort = (row.c[1] && row.c[1].v) ? row.c[1].v : ""; // B列: 略称
-            const teamLogo = (row.c[2] && row.c[2].v) ? row.c[2].v : "";  // C列: ロゴ画像
+            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : ""; // B列: 略称 (小文字画像名などに活用)
             
             const players = [];
-            // D列（インデックス3）以降をプレイヤー名として取得
+            // D列（インデックス3）以降をプレイヤー名として取得（C列の画像セルはスキップ）
             for (let col = 3; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
@@ -516,7 +512,6 @@
               loadedTeamsData.push({
                 teamName: teamName,
                 teamShort: teamShort,
-                teamLogo: teamLogo,
                 players: players
               });
             }
@@ -552,8 +547,7 @@
 
       const team = loadedTeamsData[idx];
       document.getElementById(`team-${side}-name-input`).value = team.teamName;
-      document.getElementById(`team-${side}-short-input`).value = team.teamShort || "";
-      document.getElementById(`team-${side}-logo-input`).value = team.teamLogo || "";
+      document.getElementById(`team-${side}-short-input`).value = team.teamShort;
 
       for (let i = 1; i <= 5; i++) {
         const playerSelect = document.getElementById(`select-player-${side}-${i}`);
@@ -591,12 +585,10 @@
       document.getElementById('game-title-input').value = "Game1";
       document.getElementById('map-select').value = "sunset";
 
-      document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS A";
-      document.getElementById('team-blue-short-input').value = "SPA";
-      document.getElementById('team-blue-logo-input').value = "team_a.png";
-      document.getElementById('team-red-name-input').value = "AXELIA B";
-      document.getElementById('team-red-short-input').value = "AXL";
-      document.getElementById('team-red-logo-input').value = "team_b.png";
+      document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS";
+      document.getElementById('team-blue-short-input').value = "3s";
+      document.getElementById('team-red-name-input').value = "AXELIA A";
+      document.getElementById('team-red-short-input').value = "axe_a";
 
       loadedTeamsData = [];
       updateTeamDropdowns();
@@ -651,11 +643,10 @@
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
           document.getElementById('team-blue-short-input').value = data.teams.blue.short || "";
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
-          document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           
           const blueLogoImg = document.getElementById('team-blue-logo-img');
-          if (data.teams.blue.logo) {
-            blueLogoImg.src = `images/${data.teams.blue.logo}`;
+          if (data.teams.blue.short) {
+            blueLogoImg.src = `images/${data.teams.blue.short.toLowerCase()}.png`;
             blueLogoImg.style.display = 'block';
           } else {
             blueLogoImg.style.display = 'none';
@@ -666,11 +657,10 @@
           document.getElementById('team-red-name-input').value = data.teams.red.name;
           document.getElementById('team-red-short-input').value = data.teams.red.short || "";
           document.getElementById('team-red-name').innerText = data.teams.red.name;
-          document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
 
           const redLogoImg = document.getElementById('team-red-logo-img');
-          if (data.teams.red.logo) {
-            redLogoImg.src = `images/${data.teams.red.logo}`;
+          if (data.teams.red.short) {
+            redLogoImg.src = `images/${data.teams.red.short.toLowerCase()}.png`;
             redLogoImg.style.display = 'block';
           } else {
             redLogoImg.style.display = 'none';
@@ -715,25 +705,23 @@
 
       const blueName = document.getElementById('team-blue-name-input').value;
       const blueShort = document.getElementById('team-blue-short-input').value;
-      const blueLogo = document.getElementById('team-blue-logo-input').value;
       const redName = document.getElementById('team-red-name-input').value;
       const redShort = document.getElementById('team-red-short-input').value;
-      const redLogo = document.getElementById('team-red-logo-input').value;
 
       document.getElementById('team-blue-name').innerText = blueName;
       document.getElementById('team-red-name').innerText = redName;
 
       const blueLogoImg = document.getElementById('team-blue-logo-img');
-      if (blueLogo) {
-        blueLogoImg.src = `images/${blueLogo}`;
+      if (blueShort) {
+        blueLogoImg.src = `images/${blueShort.toLowerCase()}.png`;
         blueLogoImg.style.display = 'block';
       } else {
         blueLogoImg.style.display = 'none';
       }
 
       const redLogoImg = document.getElementById('team-red-logo-img');
-      if (redLogo) {
-        redLogoImg.src = `images/${redLogo}`;
+      if (redShort) {
+        redLogoImg.src = `images/${redShort.toLowerCase()}.png`;
         redLogoImg.style.display = 'block';
       } else {
         redLogoImg.style.display = 'none';
@@ -764,8 +752,8 @@
           },
           gameTitle: gameTitle,
           teams: {
-            blue: { name: blueName, short: blueShort, logo: blueLogo },
-            red: { name: redName, short: redShort, logo: redLogo }
+            blue: { name: blueName, short: blueShort },
+            red: { name: redName, short: redShort }
           },
           map: mapVal,
           players: {}
