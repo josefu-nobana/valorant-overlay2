@@ -305,7 +305,7 @@
         <option value="">-- シートからチームを選択 --</option>
       </select>
       <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-short-input" value="3S" oninput="sendState()" placeholder="略称 (例: 3S -> 3s.png)">
+      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像URL (例: https://lh3.googleusercontent.com/d/...)">
     </div>
     <div id="blue-controls"></div>
 
@@ -321,7 +321,7 @@
         <option value="">-- シートからチームを選択 --</option>
       </select>
       <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-short-input" value="AXE A" oninput="sendState()" placeholder="略称 (例: AXE A -> axea.png または axe_a.png)">
+      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴ画像URL (例: https://lh3.googleusercontent.com/d/...)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -391,13 +391,18 @@
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
 
-    // 略称からファイル名を作成するヘルパー（スペースを除去し小文字にする）
-    function getLogoFilename(shortText) {
-      if (!shortText) return "";
-      // スペースを削除して小文字にする（例: "AXE A" -> "axea.png"）
-      // もしアバウトにしたい場合は replace(/\s+/g, '_') にすると "axe_a.png" になります
-      const cleaned = String(shortText).trim().toLowerCase().replace(/\s+/g, '');
-      return cleaned ? `${cleaned}.png` : "";
+    // ロゴのパスを解決する関数（GoogleドライブのURLや通常のファイル名をそのまま扱える）
+    function resolveLogoPath(input) {
+      if (!input) return "";
+      const val = String(input).trim();
+      // http や https から始まるURL（Googleドライブのリンクなど）ならそのまま返す
+      if (val.startsWith("http://") || val.startsWith("https://")) {
+        return val;
+      }
+      // 通常のファイル名（例: 3s.png）なら images/ フォルダと結合
+      const cleaned = val.toLowerCase().replace(/\s+/g, '');
+      if (!cleaned) return "";
+      return cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
     }
 
     function createAgentSelectHTML(id) {
@@ -507,10 +512,10 @@
           rows.forEach(row => {
             if (!row.c || !row.c[0]) return;
             const teamName = row.c[0] ? row.c[0].v : ""; 
-            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : ""; // B列: 略称
+            // C列（インデックス2）またはB列（インデックス1）からテキスト情報を取得
+            const teamLogo = (row.c[2] && row.c[2].v) ? String(row.c[2].v).trim() : ((row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "");
             
             const players = [];
-            // D列（インデックス3）以降をプレイヤー名として取得（C列の画像セルはスキップ）
             for (let col = 3; col < row.c.length; col++) {
               if (row.c[col] && row.c[col].v) {
                 players.push(row.c[col].v);
@@ -520,7 +525,7 @@
             if (teamName) {
               loadedTeamsData.push({
                 teamName: teamName,
-                teamShort: teamShort,
+                teamLogo: teamLogo,
                 players: players
               });
             }
@@ -542,8 +547,7 @@
         const currentVal = select.value;
         select.innerHTML = '<option value="">-- シートからチームを選択 --</option>';
         loadedTeamsData.forEach((t, idx) => {
-          const displayLabel = t.teamShort ? `${t.teamName} (${t.teamShort})` : t.teamName;
-          select.innerHTML += `<option value="${idx}">${displayLabel}</option>`;
+          select.innerHTML += `<option value="${idx}">${t.teamName}</option>`;
         });
         select.value = currentVal;
       });
@@ -556,7 +560,7 @@
 
       const team = loadedTeamsData[idx];
       document.getElementById(`team-${side}-name-input`).value = team.teamName;
-      document.getElementById(`team-${side}-short-input`).value = team.teamShort;
+      document.getElementById(`team-${side}-logo-input`).value = team.teamLogo;
 
       for (let i = 1; i <= 5; i++) {
         const playerSelect = document.getElementById(`select-player-${side}-${i}`);
@@ -595,9 +599,9 @@
       document.getElementById('map-select').value = "sunset";
 
       document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS";
-      document.getElementById('team-blue-short-input').value = "3S";
+      document.getElementById('team-blue-logo-input').value = "";
       document.getElementById('team-red-name-input').value = "AXELIA A";
-      document.getElementById('team-red-short-input').value = "AXE A";
+      document.getElementById('team-red-logo-input').value = "";
 
       loadedTeamsData = [];
       updateTeamDropdowns();
@@ -650,13 +654,13 @@
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name-input').value = data.teams.blue.name;
-          document.getElementById('team-blue-short-input').value = data.teams.blue.short || "";
+          document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
           document.getElementById('team-blue-name').innerText = data.teams.blue.name;
           
           const blueLogoImg = document.getElementById('team-blue-logo-img');
-          const blueLogoFile = getLogoFilename(data.teams.blue.short);
-          if (blueLogoFile) {
-            blueLogoImg.src = `images/${blueLogoFile}`;
+          const bluePath = resolveLogoPath(data.teams.blue.logo);
+          if (bluePath) {
+            blueLogoImg.src = bluePath;
             blueLogoImg.style.display = 'block';
           } else {
             blueLogoImg.style.display = 'none';
@@ -665,13 +669,13 @@
 
         if (data.teams.red) {
           document.getElementById('team-red-name-input').value = data.teams.red.name;
-          document.getElementById('team-red-short-input').value = data.teams.red.short || "";
+          document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
           document.getElementById('team-red-name').innerText = data.teams.red.name;
 
           const redLogoImg = document.getElementById('team-red-logo-img');
-          const redLogoFile = getLogoFilename(data.teams.red.short);
-          if (redLogoFile) {
-            redLogoImg.src = `images/${redLogoFile}`;
+          const redPath = resolveLogoPath(data.teams.red.logo);
+          if (redPath) {
+            redLogoImg.src = redPath;
             redLogoImg.style.display = 'block';
           } else {
             redLogoImg.style.display = 'none';
@@ -715,26 +719,26 @@
       document.getElementById('game-title-display').innerText = gameTitle;
 
       const blueName = document.getElementById('team-blue-name-input').value;
-      const blueShort = document.getElementById('team-blue-short-input').value;
+      const blueLogo = document.getElementById('team-blue-logo-input').value;
       const redName = document.getElementById('team-red-name-input').value;
-      const redShort = document.getElementById('team-red-short-input').value;
+      const redLogo = document.getElementById('team-red-logo-input').value;
 
       document.getElementById('team-blue-name').innerText = blueName;
       document.getElementById('team-red-name').innerText = redName;
 
       const blueLogoImg = document.getElementById('team-blue-logo-img');
-      const blueLogoFile = getLogoFilename(blueShort);
-      if (blueLogoFile) {
-        blueLogoImg.src = `images/${blueLogoFile}`;
+      const bluePath = resolveLogoPath(blueLogo);
+      if (bluePath) {
+        blueLogoImg.src = bluePath;
         blueLogoImg.style.display = 'block';
       } else {
         blueLogoImg.style.display = 'none';
       }
 
       const redLogoImg = document.getElementById('team-red-logo-img');
-      const redLogoFile = getLogoFilename(redShort);
-      if (redLogoFile) {
-        redLogoImg.src = `images/${redLogoFile}`;
+      const redPath = resolveLogoPath(redLogo);
+      if (redPath) {
+        redLogoImg.src = redPath;
         redLogoImg.style.display = 'block';
       } else {
         redLogoImg.style.display = 'none';
@@ -765,8 +769,8 @@
           },
           gameTitle: gameTitle,
           teams: {
-            blue: { name: blueName, short: blueShort },
-            red: { name: redName, short: redShort }
+            blue: { name: blueName, logo: blueLogo },
+            red: { name: redName, logo: redLogo }
           },
           map: mapVal,
           players: {}
